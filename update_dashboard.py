@@ -102,15 +102,61 @@ def read_units(ws):
         })
     return units
 
-def clear_git_lock():
-    """Remove stale git index.lock if it exists (safe to delete when no git is running)."""
-    lock = os.path.join(SITE_DIR, ".git", "index.lock")
-    if os.path.exists(lock):
-        try:
-            os.remove(lock)
-            print("  Cleared stale git lock file.")
-        except Exception as e:
-            print(f"  WARNING: Could not clear git lock: {e}")
+GITHUB_REMOTE = "https://github.com/edwin210designhouse/OMM-OPTIMA-210-DASHBOARD.git"
+
+def git_reinit():
+    """Wipe .git and start fresh — fixes any corruption."""
+    import shutil
+    git_dir = os.path.join(SITE_DIR, ".git")
+    try:
+        shutil.rmtree(git_dir)
+    except Exception:
+        pass
+    cmds = [
+        ["git", "init"],
+        ["git", "config", "user.email", "flores.edwin9271@gmail.com"],
+        ["git", "config", "user.name", "Edwin"],
+        ["git", "branch", "-M", "main"],
+        ["git", "remote", "add", "origin", GITHUB_REMOTE],
+    ]
+    for cmd in cmds:
+        subprocess.run(cmd, cwd=SITE_DIR, capture_output=True)
+
+def git_push(commit_msg):
+    """Push to GitHub. Auto-heals git corruption if needed."""
+    def run(cmd):
+        return subprocess.run(cmd, cwd=SITE_DIR, capture_output=True, text=True)
+
+    for attempt in range(2):
+        # Remove stale locks
+        for lock_name in ["index.lock", "MERGE_HEAD"]:
+            lock = os.path.join(SITE_DIR, ".git", lock_name)
+            try:
+                if os.path.exists(lock):
+                    os.remove(lock)
+            except Exception:
+                pass
+
+        r_add    = run(["git", "add", "-A"])
+        r_commit = run(["git", "commit", "-m", commit_msg])
+        r_push   = run(["git", "push"])
+
+        combined = r_push.stdout + r_push.stderr
+        if r_push.returncode == 0:
+            return True, "pushed"
+        if "nothing to commit" in (r_commit.stdout + r_commit.stderr):
+            return True, "nothing new"
+        if attempt == 0:
+            print("  Git issue detected — auto-fixing and retrying...")
+            git_reinit()
+            run(["git", "add", "-A"])
+            run(["git", "commit", "-m", commit_msg])
+            r_push2 = run(["git", "push", "-u", "origin", "main", "--force"])
+            if r_push2.returncode == 0:
+                return True, "pushed (after reinit)"
+            return False, r_push2.stderr.strip()
+
+    return False, "unknown error"
 
 def main():
     print("=" * 54)
@@ -205,37 +251,14 @@ def main():
     # ── Git push ─────────────────────────────────────────────────
     if AUTO_GIT:
         print("\nPushing to GitHub...")
-        clear_git_lock()
         commit_msg = f"Auto-update {now.strftime('%Y-%m-%d %H:%M')} -- {len(containers)} containers"
-        cmds = [
-            ["git", "add", "-A"],
-            ["git", "commit", "-m", commit_msg],
-            ["git", "push"],
-        ]
-        all_ok = True
-        for cmd in cmds:
-            result = subprocess.run(cmd, cwd=SITE_DIR, capture_output=True, text=True)
-            label    = " ".join(cmd[:2])
-            combined = result.stdout + result.stderr
-            if result.returncode == 0:
-                print(f"  OK   {label}")
-            elif "nothing to commit" in combined:
-                print(f"  OK   {label} (nothing new to push)")
-            else:
-                print(f"  ERR  {label}:")
-                print(f"       {result.stderr.strip()}")
-                all_ok = False
-                if "index.lock" in combined:
-                    print("  TIP: Close all other git windows, then run this script again.")
-                    break
-
-        if all_ok:
+        ok, msg = git_push(commit_msg)
+        if ok:
+            print(f"  OK   ({msg})")
             print(f"\nDone! Site will update within ~60 seconds.")
         else:
-            print(f"\nHTML was updated on disk but the push to GitHub failed.")
-            print(f"You can push manually: open Command Prompt in this folder and run:")
-            print(f"  git add -A && git commit -m \"update\" && git push")
-
+            print(f"\nERROR pushing to GitHub: {msg}")
+            print("Close Excel and any other apps, then try again.")
     else:
         print(f"\nDone! (Git push skipped — AUTO_GIT = False)")
 

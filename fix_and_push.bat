@@ -1,4 +1,7 @@
 @echo off
+echo This file is no longer needed - just run update_dashboard.py
+pause
+goto :eof
 echo ================================================
 echo   OMM Optima -- FULL RESET AND PUSH
 echo ================================================
