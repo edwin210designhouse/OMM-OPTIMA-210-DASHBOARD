@@ -1,771 +1,771 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMM · Optima Mountain Modern — Container Dashboard</title>
-<style>
-:root {
-  --bg: #F7F6F3;
-  --surface: #FFFFFF;
-  --border: rgba(0,0,0,0.10);
-  --border-strong: rgba(0,0,0,0.18);
-  --text: #1A1A18;
-  --text-2: #5C5C58;
-  --text-3: #9A9A94;
-  --accent: #1A3A2A;
-  --del-bg:  #E3F0EE;  --del-text:  #0D5040;
-  --rail-bg: #FAF0E8;  --rail-text: #703010;
-  --port-bg: #EDEBFC;  --port-text: #3A2A8A;
-  --enr-bg:  #E6EEF8;  --enr-text:  #1A3A70;
-  --ldd-bg:  #E8F2EB;  --ldd-text:  #1A5C2A;
-  --ldg-bg:  #F0EFE8;  --ldg-text:  #444440;
-  --proj-bg: #FEF5E7;  --proj-text: #7A4A00;
-  --open-bg: #FEF5E7;  --open-text: #7A4A00;
-  --crit-bg: #FEECEC;  --crit-text: #7A1A1A;
-  --closed-bg: #E8F2EB; --closed-text: #1A5C2A;
-  --scope-bg: #F4F3EF;
-  --radius: 8px;
-  --radius-lg: 12px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); font-size: 13px; line-height: 1.5; }
-.shell { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
-
-/* Topbar */
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-.topbar-left h1 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; }
-.topbar-left .sub { font-size: 11px; color: var(--text-2); margin-top: 3px; }
-.topbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.topbar-right img { height: 44px; width: auto; display: block; }
-.date-pill { font-size: 11px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 99px; }
-
-/* Tabs */
-.tabs { display: flex; gap: 2px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); padding: 3px; border-radius: var(--radius); width: fit-content; }
-.tab { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: none; border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; transition: background .12s, color .12s; }
-.tab:hover { background: var(--bg); color: var(--text); }
-.tab.on { background: var(--accent); color: #fff; }
-.panel { display: none; }
-.panel.on { display: block; }
-
-/* Badges */
-.bdg { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
-.b-DEL  { background: var(--del-bg);   color: var(--del-text);  }
-.b-RAIL { background: var(--rail-bg);  color: var(--rail-text); }
-.b-PORT { background: var(--port-bg);  color: var(--port-text); }
-.b-ENR  { background: var(--enr-bg);   color: var(--enr-text);  }
-.b-LDD  { background: var(--ldd-bg);   color: var(--ldd-text);  }
-.b-LDG  { background: var(--ldg-bg);   color: var(--ldg-text);  }
-.b-PROJ { background: var(--proj-bg);  color: var(--proj-text); }
-.b-open   { background: var(--open-bg);   color: var(--open-text);   }
-.b-crit   { background: var(--crit-bg);   color: var(--crit-text);   }
-.b-closed { background: var(--closed-bg); color: var(--closed-text); }
-
-/* Metric cards */
-.mc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
-.mc .lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-.mc .val { font-size: 22px; font-weight: 600; line-height: 1; }
-.mc .vsub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
-
-/* Status dots */
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.d-DEL  { background: #1A5C47; }
-.d-RAIL { background: #AA4010; }
-.d-PORT { background: #5A4AAA; }
-.d-ENR  { background: #2A5AAA; }
-.d-LDD  { background: #2A7A3A; }
-.d-LDG  { background: #888880; }
-.d-PROJ { background: #D4890A; }
-.d-scope { background: #CCCCCC; }
-
-/* Legend */
-.leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 10px; color: var(--text-2); margin-bottom: 10px; align-items: center; }
-.leg-i { display: flex; align-items: center; gap: 5px; }
-
-/* Tables */
-.tw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; overflow-x: auto; background: var(--surface); margin-bottom: 12px; }
-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-th { text-align: left; padding: 8px 10px; color: var(--text-3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
-td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: var(--bg); }
-.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; }
-
-/* Route pipeline */
-.route-pipeline { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; overflow-x: auto; }
-.rp-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 64px; }
-.rp-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 4px; }
-.rp-name { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); text-align: center; }
-.rp-val  { font-size: 10px; color: var(--text-2); text-align: center; margin-top: 4px; }
-.rp-line { flex: 1; height: 2px; background: var(--border); align-self: center; margin-bottom: 20px; min-width: 10px; }
-
-/* Building matrix */
-.bldg-matrix { width: 100%; border-collapse: collapse; font-size: 10px; }
-.bldg-matrix th { font-size: 9px; font-weight: 600; color: var(--text-3); text-align: center; padding: 3px 4px; background: var(--bg); border: 1px solid var(--border); white-space: nowrap; }
-.bldg-matrix td { border: 1px solid var(--border); padding: 0; text-align: center; }
-.bldg-matrix .floor-lbl { font-size: 9px; font-weight: 700; color: var(--text-2); background: var(--bg); padding: 3px 8px; white-space: nowrap; }
-.mcell { display: flex; flex-direction: column; width: 100%; cursor: default; position: relative; }
-.mcell-id { font-size: 8px; font-weight: 600; color: var(--text-2); padding: 3px 2px 1px; text-align: center; }
-.mcell-bar { height: 6px; width: 100%; }
-.mcell:hover .mcell-tip { display: block; }
-.mcell-tip { display: none; position: absolute; z-index: 99; top: 100%; left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 9px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; pointer-events: none; margin-top: 2px; }
-
-/* Damage form */
-.dmg-group { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
-.dmg-group.open  { border-left: 3px solid #CC3030; }
-.dmg-group.closed { border-left: 3px solid #2A7A3A; }
-.dmg-group-hdr { padding: 6px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--bg); border-bottom: 1px solid var(--border); color: var(--text-2); display: flex; align-items: center; gap: 8px; }
-.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 8px; }
-.form-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.form-card .form-sub { font-size: 11px; color: var(--text-2); margin-bottom: 16px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.form-grid.single { grid-template-columns: 1fr; }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
-.field input, .field select, .field textarea { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--bg); outline: none; transition: border-color .12s; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
-.field textarea { resize: vertical; min-height: 70px; }
-.field .date-fixed { font-size: 12px; color: var(--text-2); padding: 8px 10px; background: var(--scope-bg); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'SF Mono', monospace; }
-.form-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
-.btn-submit { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 9px 18px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
-.btn-submit:hover { opacity: .88; }
-.form-msg { font-size: 11px; color: var(--ldd-text); font-weight: 500; display: none; }
-.form-msg.err { color: var(--crit-text); }
-.export-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.export-bar .count { font-size: 11px; color: var(--text-2); }
-.btn-export { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 14px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display: flex; align-items: center; gap: 6px; }
-.btn-export:hover { background: var(--bg); }
-.btn-export svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.empty-state { text-align: center; padding: 32px; color: var(--text-3); font-size: 12px; }
-.empty-state .big { font-size: 28px; margin-bottom: 8px; }
-
-@media (max-width: 700px) {
-  .shell { padding: 14px 12px 40px; }
-  .topbar { flex-direction: column; gap: 10px; }
-  .topbar-right { align-items: flex-start; }
-  .tabs { width: 100%; overflow-x: auto; }
-  .tab { padding: 7px 12px; white-space: nowrap; }
-  #ctn > div[style*="display:flex"] { flex-direction: column !important; }
-  #bldg .tw { overflow-x: auto; }
-  .form-grid { grid-template-columns: 1fr !important; }
-}
-</style>
-</head>
-<body>
-<div class="shell">
-
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="topbar-left">
-    <h1>OMM · Optima Mountain Modern</h1>
-    <div class="sub" id="page-sub">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
-  </div>
-  <div class="topbar-right">
-    <span class="date-pill" id="today-pill"></span>
-  </div>
-</div>
-
-<!-- TABS -->
-<div class="tabs">
-  <button class="tab on" onclick="sw('ctn',this)">Container schedule</button>
-  <button class="tab" onclick="sw('bldg',this)">Building matrix</button>
-  <button class="tab" onclick="sw('dmg',this)">Damage / open items</button>
-</div>
-
-<!-- ===== CONTAINER SCHEDULE ===== -->
-<div id="ctn" class="panel on">
-
-  <!-- Top row: metrics + transit | donut | next up -->
-  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
-
-    <!-- Left: 2-col metrics + transit perf -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;">
-      <div class="mc" style="margin:0">
-        <div class="lbl">Total containers</div>
-        <div class="val" id="m-total">—</div>
-        <div class="vsub" id="m-total-sub">—</div>
-      </div>
-      <div class="mc" style="margin:0">
-        <div class="lbl">Units in scope</div>
-        <div class="val" id="m-units">—</div>
-        <div class="vsub" id="m-units-sub">—</div>
-      </div>
-      <div class="mc" style="margin:0;grid-column:1/-1;padding:12px 16px;">
-        <div class="lbl" style="margin-bottom:8px;">Transit reference</div>
-        <div id="transit-perf-table"></div>
-      </div>
-    </div>
-
-    <!-- Donut chart -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:10px;">
-      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Container status</div>
-      <canvas id="status-chart" width="160" height="160"></canvas>
-      <div id="donut-legend" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:0 4px;"></div>
-    </div>
-
-    <!-- Next up -->
-    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;display:flex;flex-direction:column;">
-      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Next up</div>
-      <div id="next-up-list" style="flex:1;"></div>
-    </div>
-  </div>
-
-  <!-- Route pipeline -->
-  <div class="route-pipeline">
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#F0EFE8">🏭</div>
-      <div class="rp-name">Factory IT</div>
-      <div id="rp-LDG" class="rp-val"></div>
-    </div>
-    <div class="rp-line"></div>
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#E8F0EB">📦</div>
-      <div class="rp-name">Loaded</div>
-      <div id="rp-LDD" class="rp-val"></div>
-    </div>
-    <div class="rp-line"></div>
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#E6EEF8">🚢</div>
-      <div class="rp-name">Sea Freight</div>
-      <div id="rp-ENR" class="rp-val"></div>
-    </div>
-    <div class="rp-line"></div>
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#EDEBFC">⚓</div>
-      <div class="rp-name">Port (LAX)</div>
-      <div id="rp-PORT" class="rp-val"></div>
-    </div>
-    <div class="rp-line"></div>
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#FAF0E8">🚂</div>
-      <div class="rp-name">Phoenix RR</div>
-      <div id="rp-RAIL" class="rp-val"></div>
-    </div>
-    <div class="rp-line"></div>
-    <div class="rp-step">
-      <div class="rp-icon" style="background:#E8F2EB">🏗</div>
-      <div class="rp-name">Delivered</div>
-      <div id="rp-DEL" class="rp-val"></div>
-    </div>
-  </div>
-
-  <!-- Container table -->
-  <div class="tw">
-    <table>
-      <thead><tr>
-        <th>#</th><th>Status</th><th>Pickup Wk</th><th>Floors</th>
-        <th>Load Date</th><th>Ship Date</th>
-        <th>Vessel 1 (IT→COL)</th><th>Vessel 2 (COL→LAX)</th>
-        <th>ETA LAX</th><th>ETA Phoenix RR</th>
-        <th>Delivery Date</th><th>Install Date</th>
-      </tr></thead>
-      <tbody id="ctn-tbody">
-        <tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ===== BUILDING MATRIX ===== -->
-<div id="bldg" class="panel">
-  <div class="leg" style="margin-bottom:10px">
-    <span class="leg-i"><span class="dot d-DEL"></span> Delivered</span>
-    <span class="leg-i"><span class="dot d-RAIL"></span> Phoenix RR</span>
-    <span class="leg-i"><span class="dot d-PORT"></span> Port (LAX)</span>
-    <span class="leg-i"><span class="dot d-ENR"></span> Sea freight</span>
-    <span class="leg-i"><span class="dot d-LDD"></span> Loaded</span>
-    <span class="leg-i"><span class="dot d-LDG"></span> Loading</span>
-    <span class="leg-i"><span class="dot d-PROJ"></span> Projected</span>
-    <span class="leg-i"><span class="dot d-scope"></span> Not in scope</span>
-  </div>
-  <div style="display:flex;gap:12px;align-items:flex-start;">
-    <div id="bldg-grid" style="flex:1;overflow-x:auto;"></div>
-    <div id="bldg-sidebar" style="flex-shrink:0;min-width:180px;"></div>
-  </div>
-</div>
-
-<!-- ===== DAMAGE / OPEN ITEMS ===== -->
-<div id="dmg" class="panel">
-  <div class="form-card">
-    <h3>Log a damage or open item</h3>
-    <p class="form-sub">Fill in what you found. Date is auto-stamped. Items persist in your browser and export to CSV.</p>
-    <div class="form-grid">
-      <div class="field">
-        <label>Unit #</label>
-        <select id="f-unit"><option value="">— Select unit —</option></select>
-      </div>
-      <div class="field">
-        <label>Date reported</label>
-        <div class="date-fixed" id="today-display"></div>
-      </div>
-      <div class="field">
-        <label>Item code (if known)</label>
-        <input type="text" id="f-code" placeholder="e.g. OMMCF001234">
-      </div>
-      <div class="field">
-        <label>Component / cabinet</label>
-        <input type="text" id="f-component" placeholder="e.g. Island back panel">
-      </div>
-    </div>
-    <div class="form-grid single">
-      <div class="field">
-        <label>Issue description</label>
-        <textarea id="f-issue" placeholder="Describe what was found — damage type, location, severity…"></textarea>
-      </div>
-      <div class="field" style="margin-top:10px">
-        <label>Photo reference / filename</label>
-        <input type="text" id="f-photo" placeholder="e.g. 2006_island_damage.jpg">
-      </div>
-      <div class="field" style="margin-top:10px">
-        <label>Comment / action taken</label>
-        <input type="text" id="f-comment" placeholder="e.g. Ordered replacement, touch-up applied…">
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn-submit" onclick="submitItem()">Log item</button>
-      <span class="form-msg" id="form-msg"></span>
-    </div>
-  </div>
-  <div style="margin-top:20px">
-    <div class="export-bar">
-      <span class="count" id="dmg-count-label">0 items logged</span>
-      <button class="btn-export" onclick="exportCSV()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export to CSV
-      </button>
-    </div>
-    <div id="dmg-open-group" class="dmg-group open" style="display:none">
-      <div class="dmg-group-hdr"><span style="color:#CC3030">&#9679;</span> Open items <span id="open-count" class="bdg b-open" style="margin-left:4px"></span></div>
-      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="open-tbody"></tbody></table>
-    </div>
-    <div id="dmg-closed-group" class="dmg-group closed" style="display:none;margin-top:8px">
-      <div class="dmg-group-hdr"><span style="color:#2A7A3A">&#9679;</span> Closed items <span id="closed-count" class="bdg b-closed" style="margin-left:4px"></span></div>
-      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="closed-tbody"></tbody></table>
-    </div>
-    <div id="empty-state" class="empty-state">
-      <div class="big">&#128203;</div>
-      No items logged yet. Use the form above to log the first damage or open item.
-    </div>
-  </div>
-</div>
-
-</div><!-- /shell -->
-
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMM · Optima Mountain Modern — Container Dashboard</title>
+<style>
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.10);
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #1A1A18;
+  --text-2: #5C5C58;
+  --text-3: #9A9A94;
+  --accent: #1A3A2A;
+  --del-bg:  #E3F0EE;  --del-text:  #0D5040;
+  --rail-bg: #FAF0E8;  --rail-text: #703010;
+  --port-bg: #EDEBFC;  --port-text: #3A2A8A;
+  --enr-bg:  #E6EEF8;  --enr-text:  #1A3A70;
+  --ldd-bg:  #E8F2EB;  --ldd-text:  #1A5C2A;
+  --ldg-bg:  #F0EFE8;  --ldg-text:  #444440;
+  --proj-bg: #FEF5E7;  --proj-text: #7A4A00;
+  --open-bg: #FEF5E7;  --open-text: #7A4A00;
+  --crit-bg: #FEECEC;  --crit-text: #7A1A1A;
+  --closed-bg: #E8F2EB; --closed-text: #1A5C2A;
+  --scope-bg: #F4F3EF;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); font-size: 13px; line-height: 1.5; }
+.shell { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+
+/* Topbar */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.topbar-left h1 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; }
+.topbar-left .sub { font-size: 11px; color: var(--text-2); margin-top: 3px; }
+.topbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.topbar-right img { height: 44px; width: auto; display: block; }
+.date-pill { font-size: 11px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 99px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); padding: 3px; border-radius: var(--radius); width: fit-content; }
+.tab { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: none; border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; transition: background .12s, color .12s; }
+.tab:hover { background: var(--bg); color: var(--text); }
+.tab.on { background: var(--accent); color: #fff; }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* Badges */
+.bdg { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.b-DEL  { background: var(--del-bg);   color: var(--del-text);  }
+.b-RAIL { background: var(--rail-bg);  color: var(--rail-text); }
+.b-PORT { background: var(--port-bg);  color: var(--port-text); }
+.b-ENR  { background: var(--enr-bg);   color: var(--enr-text);  }
+.b-LDD  { background: var(--ldd-bg);   color: var(--ldd-text);  }
+.b-LDG  { background: var(--ldg-bg);   color: var(--ldg-text);  }
+.b-PROJ { background: var(--proj-bg);  color: var(--proj-text); }
+.b-open   { background: var(--open-bg);   color: var(--open-text);   }
+.b-crit   { background: var(--crit-bg);   color: var(--crit-text);   }
+.b-closed { background: var(--closed-bg); color: var(--closed-text); }
+
+/* Metric cards */
+.mc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.mc .lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.mc .val { font-size: 22px; font-weight: 600; line-height: 1; }
+.mc .vsub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
+
+/* Status dots */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.d-DEL  { background: #1A5C47; }
+.d-RAIL { background: #AA4010; }
+.d-PORT { background: #5A4AAA; }
+.d-ENR  { background: #2A5AAA; }
+.d-LDD  { background: #2A7A3A; }
+.d-LDG  { background: #888880; }
+.d-PROJ { background: #D4890A; }
+.d-scope { background: #CCCCCC; }
+
+/* Legend */
+.leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 10px; color: var(--text-2); margin-bottom: 10px; align-items: center; }
+.leg-i { display: flex; align-items: center; gap: 5px; }
+
+/* Tables */
+.tw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; overflow-x: auto; background: var(--surface); margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { text-align: left; padding: 8px 10px; color: var(--text-3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
+.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; }
+
+/* Route pipeline */
+.route-pipeline { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; overflow-x: auto; }
+.rp-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 64px; }
+.rp-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 4px; }
+.rp-name { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); text-align: center; }
+.rp-val  { font-size: 10px; color: var(--text-2); text-align: center; margin-top: 4px; }
+.rp-line { flex: 1; height: 2px; background: var(--border); align-self: center; margin-bottom: 20px; min-width: 10px; }
+
+/* Building matrix */
+.bldg-matrix { width: 100%; border-collapse: collapse; font-size: 10px; }
+.bldg-matrix th { font-size: 9px; font-weight: 600; color: var(--text-3); text-align: center; padding: 3px 4px; background: var(--bg); border: 1px solid var(--border); white-space: nowrap; }
+.bldg-matrix td { border: 1px solid var(--border); padding: 0; text-align: center; }
+.bldg-matrix .floor-lbl { font-size: 9px; font-weight: 700; color: var(--text-2); background: var(--bg); padding: 3px 8px; white-space: nowrap; }
+.mcell { display: flex; flex-direction: column; width: 100%; cursor: default; position: relative; }
+.mcell-id { font-size: 8px; font-weight: 600; color: var(--text-2); padding: 3px 2px 1px; text-align: center; }
+.mcell-bar { height: 6px; width: 100%; }
+.mcell:hover .mcell-tip { display: block; }
+.mcell-tip { display: none; position: absolute; z-index: 99; top: 100%; left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 9px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; pointer-events: none; margin-top: 2px; }
+
+/* Damage form */
+.dmg-group { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+.dmg-group.open  { border-left: 3px solid #CC3030; }
+.dmg-group.closed { border-left: 3px solid #2A7A3A; }
+.dmg-group-hdr { padding: 6px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--bg); border-bottom: 1px solid var(--border); color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 8px; }
+.form-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.form-card .form-sub { font-size: 11px; color: var(--text-2); margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-grid.single { grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
+.field input, .field select, .field textarea { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--bg); outline: none; transition: border-color .12s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
+.field textarea { resize: vertical; min-height: 70px; }
+.field .date-fixed { font-size: 12px; color: var(--text-2); padding: 8px 10px; background: var(--scope-bg); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'SF Mono', monospace; }
+.form-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.btn-submit { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 9px 18px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-submit:hover { opacity: .88; }
+.form-msg { font-size: 11px; color: var(--ldd-text); font-weight: 500; display: none; }
+.form-msg.err { color: var(--crit-text); }
+.export-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.export-bar .count { font-size: 11px; color: var(--text-2); }
+.btn-export { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 14px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.btn-export:hover { background: var(--bg); }
+.btn-export svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.empty-state { text-align: center; padding: 32px; color: var(--text-3); font-size: 12px; }
+.empty-state .big { font-size: 28px; margin-bottom: 8px; }
+
+@media (max-width: 700px) {
+  .shell { padding: 14px 12px 40px; }
+  .topbar { flex-direction: column; gap: 10px; }
+  .topbar-right { align-items: flex-start; }
+  .tabs { width: 100%; overflow-x: auto; }
+  .tab { padding: 7px 12px; white-space: nowrap; }
+  #ctn > div[style*="display:flex"] { flex-direction: column !important; }
+  #bldg .tw { overflow-x: auto; }
+  .form-grid { grid-template-columns: 1fr !important; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>OMM · Optima Mountain Modern</h1>
+    <div class="sub" id="page-sub">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
+  </div>
+  <div class="topbar-right">
+    <span class="date-pill" id="today-pill"></span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="sw('ctn',this)">Container schedule</button>
+  <button class="tab" onclick="sw('bldg',this)">Building matrix</button>
+  <button class="tab" onclick="sw('dmg',this)">Damage / open items</button>
+</div>
+
+<!-- ===== CONTAINER SCHEDULE ===== -->
+<div id="ctn" class="panel on">
+
+  <!-- Top row: metrics + transit | donut | next up -->
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
+
+    <!-- Left: 2-col metrics + transit perf -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;">
+      <div class="mc" style="margin:0">
+        <div class="lbl">Total containers</div>
+        <div class="val" id="m-total">—</div>
+        <div class="vsub" id="m-total-sub">—</div>
+      </div>
+      <div class="mc" style="margin:0">
+        <div class="lbl">Units in scope</div>
+        <div class="val" id="m-units">—</div>
+        <div class="vsub" id="m-units-sub">—</div>
+      </div>
+      <div class="mc" style="margin:0;grid-column:1/-1;padding:12px 16px;">
+        <div class="lbl" style="margin-bottom:8px;">Transit reference</div>
+        <div id="transit-perf-table"></div>
+      </div>
+    </div>
+
+    <!-- Donut chart -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Container status</div>
+      <canvas id="status-chart" width="160" height="160"></canvas>
+      <div id="donut-legend" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:0 4px;"></div>
+    </div>
+
+    <!-- Next up -->
+    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;display:flex;flex-direction:column;">
+      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Next up</div>
+      <div id="next-up-list" style="flex:1;"></div>
+    </div>
+  </div>
+
+  <!-- Route pipeline -->
+  <div class="route-pipeline">
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#F0EFE8">🏭</div>
+      <div class="rp-name">Factory IT</div>
+      <div id="rp-LDG" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E8F0EB">📦</div>
+      <div class="rp-name">Loaded</div>
+      <div id="rp-LDD" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E6EEF8">🚢</div>
+      <div class="rp-name">Sea Freight</div>
+      <div id="rp-ENR" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#EDEBFC">⚓</div>
+      <div class="rp-name">Port (LAX)</div>
+      <div id="rp-PORT" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#FAF0E8">🚂</div>
+      <div class="rp-name">Phoenix RR</div>
+      <div id="rp-RAIL" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E8F2EB">🏗</div>
+      <div class="rp-name">Delivered</div>
+      <div id="rp-DEL" class="rp-val"></div>
+    </div>
+  </div>
+
+  <!-- Container table -->
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Status</th><th>Pickup Wk</th><th>Floors</th>
+        <th>Load Date</th><th>Ship Date</th>
+        <th>Vessel 1 (IT→COL)</th><th>Vessel 2 (COL→LAX)</th>
+        <th>ETA LAX</th><th>ETA Phoenix RR</th>
+        <th>Delivery Date</th><th>Install Date</th>
+      </tr></thead>
+      <tbody id="ctn-tbody">
+        <tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== BUILDING MATRIX ===== -->
+<div id="bldg" class="panel">
+  <div class="leg" style="margin-bottom:10px">
+    <span class="leg-i"><span class="dot d-DEL"></span> Delivered</span>
+    <span class="leg-i"><span class="dot d-RAIL"></span> Phoenix RR</span>
+    <span class="leg-i"><span class="dot d-PORT"></span> Port (LAX)</span>
+    <span class="leg-i"><span class="dot d-ENR"></span> Sea freight</span>
+    <span class="leg-i"><span class="dot d-LDD"></span> Loaded</span>
+    <span class="leg-i"><span class="dot d-LDG"></span> Loading</span>
+    <span class="leg-i"><span class="dot d-PROJ"></span> Projected</span>
+    <span class="leg-i"><span class="dot d-scope"></span> Not in scope</span>
+  </div>
+  <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div id="bldg-grid" style="flex:1;overflow-x:auto;"></div>
+    <div id="bldg-sidebar" style="flex-shrink:0;min-width:180px;"></div>
+  </div>
+</div>
+
+<!-- ===== DAMAGE / OPEN ITEMS ===== -->
+<div id="dmg" class="panel">
+  <div class="form-card">
+    <h3>Log a damage or open item</h3>
+    <p class="form-sub">Fill in what you found. Date is auto-stamped. Items persist in your browser and export to CSV.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Unit #</label>
+        <select id="f-unit"><option value="">— Select unit —</option></select>
+      </div>
+      <div class="field">
+        <label>Date reported</label>
+        <div class="date-fixed" id="today-display"></div>
+      </div>
+      <div class="field">
+        <label>Item code (if known)</label>
+        <input type="text" id="f-code" placeholder="e.g. OMMCF001234">
+      </div>
+      <div class="field">
+        <label>Component / cabinet</label>
+        <input type="text" id="f-component" placeholder="e.g. Island back panel">
+      </div>
+    </div>
+    <div class="form-grid single">
+      <div class="field">
+        <label>Issue description</label>
+        <textarea id="f-issue" placeholder="Describe what was found — damage type, location, severity…"></textarea>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Photo reference / filename</label>
+        <input type="text" id="f-photo" placeholder="e.g. 2006_island_damage.jpg">
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Comment / action taken</label>
+        <input type="text" id="f-comment" placeholder="e.g. Ordered replacement, touch-up applied…">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-submit" onclick="submitItem()">Log item</button>
+      <span class="form-msg" id="form-msg"></span>
+    </div>
+  </div>
+  <div style="margin-top:20px">
+    <div class="export-bar">
+      <span class="count" id="dmg-count-label">0 items logged</span>
+      <button class="btn-export" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export to CSV
+      </button>
+    </div>
+    <div id="dmg-open-group" class="dmg-group open" style="display:none">
+      <div class="dmg-group-hdr"><span style="color:#CC3030">&#9679;</span> Open items <span id="open-count" class="bdg b-open" style="margin-left:4px"></span></div>
+      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="open-tbody"></tbody></table>
+    </div>
+    <div id="dmg-closed-group" class="dmg-group closed" style="display:none;margin-top:8px">
+      <div class="dmg-group-hdr"><span style="color:#2A7A3A">&#9679;</span> Closed items <span id="closed-count" class="bdg b-closed" style="margin-left:4px"></span></div>
+      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="closed-tbody"></tbody></table>
+    </div>
+    <div id="empty-state" class="empty-state">
+      <div class="big">&#128203;</div>
+      No items logged yet. Use the form above to log the first damage or open item.
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
 // DATA_START
 const CONTAINERS = [{"num": 1, "status": "PROJ", "week": "WEEK 32", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 5, 2026", "shipDate": "Aug 9, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 3, 2026", "etaPhoenix": "Sep 16, 2026", "deliveryDate": "Sep 21, 2026", "installDate": "—"}, {"num": 2, "status": "PROJ", "week": "WEEK 33", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 12, 2026", "shipDate": "Aug 16, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 10, 2026", "etaPhoenix": "Sep 23, 2026", "deliveryDate": "Sep 28, 2026", "installDate": "—"}, {"num": 3, "status": "PROJ", "week": "WEEK 34", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 19, 2026", "shipDate": "Aug 23, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 17, 2026", "etaPhoenix": "Sep 30, 2026", "deliveryDate": "Oct 5, 2026", "installDate": "—"}, {"num": 4, "status": "PROJ", "week": "WEEK 35", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 26, 2026", "shipDate": "Aug 30, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 24, 2026", "etaPhoenix": "Oct 7, 2026", "deliveryDate": "Oct 12, 2026", "installDate": "—"}, {"num": 5, "status": "PROJ", "week": "WEEK 36", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 2, 2026", "shipDate": "Sep 6, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 1, 2026", "etaPhoenix": "Oct 14, 2026", "deliveryDate": "Oct 19, 2026", "installDate": "—"}, {"num": 6, "status": "PROJ", "week": "WEEK 37", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 9, 2026", "shipDate": "Sep 13, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 8, 2026", "etaPhoenix": "Oct 21, 2026", "deliveryDate": "Oct 26, 2026", "installDate": "—"}, {"num": 7, "status": "PROJ", "week": "WEEK 38", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 16, 2026", "shipDate": "Sep 20, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 15, 2026", "etaPhoenix": "Oct 28, 2026", "deliveryDate": "Nov 2, 2026", "installDate": "—"}, {"num": 8, "status": "PROJ", "week": "WEEK 39", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 23, 2026", "shipDate": "Sep 27, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 22, 2026", "etaPhoenix": "Nov 4, 2026", "deliveryDate": "Nov 9, 2026", "installDate": "—"}, {"num": 9, "status": "PROJ", "week": "WEEK 40", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 30, 2026", "shipDate": "Oct 4, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 29, 2026", "etaPhoenix": "Nov 11, 2026", "deliveryDate": "Nov 16, 2026", "installDate": "—"}, {"num": 10, "status": "PROJ", "week": "WEEK 41", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 7, 2026", "shipDate": "Oct 11, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 5, 2026", "etaPhoenix": "Nov 18, 2026", "deliveryDate": "Nov 23, 2026", "installDate": "—"}, {"num": 11, "status": "PROJ", "week": "WEEK 42", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 14, 2026", "shipDate": "Oct 18, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 12, 2026", "etaPhoenix": "Nov 25, 2026", "deliveryDate": "Nov 30, 2026", "installDate": "—"}, {"num": 12, "status": "PROJ", "week": "WEEK 43", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 21, 2026", "shipDate": "Oct 25, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 19, 2026", "etaPhoenix": "Dec 2, 2026", "deliveryDate": "Dec 7, 2026", "installDate": "—"}, {"num": 13, "status": "PROJ", "week": "WEEK 44", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 28, 2026", "shipDate": "Nov 1, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 26, 2026", "etaPhoenix": "Dec 9, 2026", "deliveryDate": "Dec 14, 2026", "installDate": "—"}, {"num": 14, "status": "PROJ", "week": "WEEK 45", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 4, 2026", "shipDate": "Nov 8, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 3, 2026", "etaPhoenix": "Dec 16, 2026", "deliveryDate": "Dec 21, 2026", "installDate": "—"}, {"num": 15, "status": "PROJ", "week": "WEEK 46", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 11, 2026", "shipDate": "Nov 15, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 10, 2026", "etaPhoenix": "Dec 23, 2026", "deliveryDate": "Dec 28, 2026", "installDate": "—"}, {"num": 16, "status": "PROJ", "week": "WEEK 47", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 18, 2026", "shipDate": "Nov 22, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 17, 2026", "etaPhoenix": "Dec 30, 2026", "deliveryDate": "Jan 4, 2027", "installDate": "—"}, {"num": 17, "status": "PROJ", "week": "WEEK 48", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 25, 2026", "shipDate": "Nov 29, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 24, 2026", "etaPhoenix": "Jan 6, 2027", "deliveryDate": "Jan 11, 2027", "installDate": "—"}, {"num": 18, "status": "PROJ", "week": "WEEK 49", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 2, 2026", "shipDate": "Dec 6, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 31, 2026", "etaPhoenix": "Jan 13, 2027", "deliveryDate": "Jan 18, 2027", "installDate": "—"}, {"num": 19, "status": "PROJ", "week": "WEEK 50", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 9, 2026", "shipDate": "Dec 13, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 7, 2027", "etaPhoenix": "Jan 20, 2027", "deliveryDate": "Jan 25, 2027", "installDate": "—"}, {"num": 20, "status": "PROJ", "week": "WEEK 51", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 16, 2026", "shipDate": "Dec 20, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 14, 2027", "etaPhoenix": "Jan 27, 2027", "deliveryDate": "Feb 1, 2027", "installDate": "—"}, {"num": 21, "status": "PROJ", "week": "WEEK 52", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 29, 2027", "shipDate": "Jan 2, 2028", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 21, 2027", "etaPhoenix": "Feb 3, 2027", "deliveryDate": "Feb 8, 2027", "installDate": "—"}];
 const UNITS = [{"floor": 2, "unit": 2001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2005, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2006, "inScope": true, "combo": null, "type": "3B-02", "status": "ORDERED", "components": [{"name": "Bev Ctr", "ctn": 1}, {"name": "Laundry", "ctn": 1}], "ctns": [1]}, {"floor": 2, "unit": 2007, "inScope": true, "combo": null, "type": "1B-02", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 1}, {"name": "Utility", "ctn": 1}, {"name": "Kitchen", "ctn": 1}, {"name": "Prim Bath", "ctn": 1}], "ctns": [1]}, {"floor": 2, "unit": 2008, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2009, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2010, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2011, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2015, "inScope": true, "combo": null, "type": "3B-04", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 1}, {"name": "Hall", "ctn": 1}, {"name": "Utility", "ctn": 1}, {"name": "Kitchen", "ctn": 1}, {"name": "Prim Bath", "ctn": 1}, {"name": "Bath 2", "ctn": 1}], "ctns": [1]}, {"floor": 2, "unit": 2016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2017, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2019, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2020, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2021, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2023, "inScope": true, "combo": null, "type": "2B-07", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 1}, {"name": "Hall", "ctn": 1}, {"name": "Utility", "ctn": 1}, {"name": "Kitchen", "ctn": 1}, {"name": "Prim Bath", "ctn": 1}, {"name": "Bath 2", "ctn": 1}, {"name": "Bed 2", "ctn": 1}], "ctns": [1]}, {"floor": 2, "unit": 2024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2025, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 2, "unit": 2028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3005, "inScope": true, "combo": "YES", "type": "3005.06.07", "status": "ORDERED", "components": [{"name": "Utility", "ctn": 2}, {"name": "Kitchen", "ctn": 2}, {"name": "Dining", "ctn": 2}, {"name": "Prim Bath", "ctn": 2}, {"name": "Bath 2", "ctn": 2}, {"name": "Bath 3", "ctn": 2}], "ctns": [2]}, {"floor": 3, "unit": 3006, "inScope": true, "combo": "YES", "type": "3005.06.07", "status": "ORDERED", "components": [], "ctns": []}, {"floor": 3, "unit": 3007, "inScope": true, "combo": "YES", "type": "3005.06.07", "status": "ORDERED", "components": [], "ctns": []}, {"floor": 3, "unit": 3008, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3009, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3010, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3011, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3017, "inScope": true, "combo": null, "type": "1B-05", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 2}, {"name": "Utility", "ctn": 2}, {"name": "Kitchen", "ctn": 2}, {"name": "Prim Bath", "ctn": 2}], "ctns": [2]}, {"floor": 3, "unit": 3018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3019, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3020, "inScope": true, "combo": null, "type": "1B-06", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 2}, {"name": "Utility", "ctn": 2}, {"name": "Kitchen", "ctn": 2}, {"name": "Prim Bath", "ctn": 2}], "ctns": [2]}, {"floor": 3, "unit": 3021, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3025, "inScope": true, "combo": null, "type": "2B-09", "status": "ORDERED", "components": [{"name": "Bev Ctr", "ctn": 2}, {"name": "Kitchen", "ctn": 2}], "ctns": [2]}, {"floor": 3, "unit": 3026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 3, "unit": 3027, "inScope": true, "combo": null, "type": "2B-11", "status": "ORDERED", "components": [{"name": "Foyer", "ctn": 2}, {"name": "Utility", "ctn": 2}, {"name": "Kitchen", "ctn": 2}, {"name": "Prim Bath", "ctn": 2}, {"name": "Bath 2", "ctn": 2}], "ctns": [2]}, {"floor": 3, "unit": 3028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4005, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4006, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4007, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4008, "inScope": true, "combo": null, "type": "2B-02", "status": "ORDERED", "components": [{"name": "Utility", "ctn": 3}, {"name": "Kitchen", "ctn": 3}, {"name": "Prim Bath", "ctn": 3}, {"name": "Bath 2", "ctn": 3}, {"name": "Bed 2", "ctn": 3}], "ctns": [3]}, {"floor": 4, "unit": 4009, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4010, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4011, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4017, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4019, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4020, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4021, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4025, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 4, "unit": 4028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5005, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5006, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5007, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5008, "inScope": true, "combo": "YES", "type": 5008.09, "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5009, "inScope": true, "combo": "YES", "type": 5008.09, "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5010, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5011, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5017, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5019, "inScope": true, "combo": null, "type": "3B-06", "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5020, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5021, "inScope": true, "combo": null, "type": "2B-06", "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5025, "inScope": true, "combo": null, "type": "2B-09", "status": "PENDING", "components": [], "ctns": []}, {"floor": 5, "unit": 5026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 5, "unit": 5028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6002, "inScope": true, "combo": "YES", "type": 6002.03, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6003, "inScope": true, "combo": "YES", "type": 6002.03, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6005, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6006, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6007, "inScope": true, "combo": null, "type": "1B-02", "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6008, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6009, "inScope": true, "combo": null, "type": "1B-03", "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6010, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6011, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6017, "inScope": true, "combo": "YES", "type": 6017.18, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6018, "inScope": true, "combo": "YES", "type": 6017.18, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6019, "inScope": true, "combo": "YES", "type": 6019.2, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6020, "inScope": true, "combo": "YES", "type": 6019.2, "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6021, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6025, "inScope": true, "combo": null, "type": "2B-09", "status": "PENDING", "components": [], "ctns": []}, {"floor": 6, "unit": 6026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 6, "unit": 6028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7001, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7005, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7006, "inScope": true, "combo": "YES", "type": 7006.07, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7007, "inScope": true, "combo": "YES", "type": 7006.07, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7008, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7009, "inScope": true, "combo": "YES", "type": 7009.1, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7010, "inScope": true, "combo": "YES", "type": 7009.1, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7011, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7012, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7017, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7019, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7020, "inScope": true, "combo": "YES", "type": 7020.21, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7021, "inScope": true, "combo": "YES", "type": 7020.21, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7025, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 7, "unit": 7026, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 7, "unit": 7028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8001, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8002, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8003, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8004, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8005, "inScope": true, "combo": "YES", "type": 8005.06, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8006, "inScope": true, "combo": "YES", "type": 8005.06, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8007, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8008, "inScope": true, "combo": "YES", "type": 8008.09, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8009, "inScope": true, "combo": "YES", "type": 8008.09, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8010, "inScope": true, "combo": "YES", "type": 8010.11, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8011, "inScope": true, "combo": "YES", "type": 8010.11, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8012, "inScope": true, "combo": null, "type": null, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8013, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8014, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8015, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8016, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8017, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8018, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8019, "inScope": true, "combo": "YES", "type": 8019.2, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8020, "inScope": true, "combo": "YES", "type": 8019.2, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8021, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8022, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8023, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8024, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8025, "inScope": true, "combo": "YES", "type": 8025.26, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8026, "inScope": true, "combo": "YES", "type": 8025.26, "status": "PENDING", "components": [], "ctns": []}, {"floor": 8, "unit": 8027, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}, {"floor": 8, "unit": 8028, "inScope": false, "combo": null, "type": null, "status": "NOT IN SCOPE", "components": [], "ctns": []}];
-const UPDATED = "Jun 25, 2026 at 05:16 PM";
-// DATA_END
-
-// ── STATUS CONFIG ────────────────────────────────────────────────
-const STATUS_RANK   = { DEL:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
-const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#D8EDEA' };
-const STATUS_DOTS   = { DEL:'#1A5C47', RAIL:'#AA4010', PORT:'#5A4AAA', ENR:'#2A5AAA', LDD:'#2A7A3A', LDG:'#888880', PROJ:'#D4890A' };
-const STATUS_LABELS = { DEL:'Delivered', RAIL:'Phoenix RR', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Projected' };
-const STATUS_BADGE  = { DEL:'b-DEL', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
-const STATUS_ORDER  = ['DEL','RAIL','PORT','ENR','LDD','LDG','PROJ'];
-const PIPELINE_IDS  = ['DEL','RAIL','PORT','ENR','LDD','LDG'];
-
-const TRANSIT_REF = [
-  { label:'Leg 1: Italy → Colombia',  value:'~3 wks' },
-  { label:'Leg 2: Colombia → LAX',    value:'~3 wks' },
-  { label:'Port (LAX) processing',    value:'~1 wk'  },
-  { label:'Rail: LAX → Phoenix RR',   value:'~3 days'},
-  { label:'Total sea transit',         value:'~7–8 wks'},
-];
-
-function normStatus(code) {
-  const c = (code || 'PROJ').toString().trim().toUpperCase();
-  return STATUS_RANK[c] ? c : 'PROJ';
-}
-function today() { return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
-function todayISO() { return new Date().toISOString().slice(0,10); }
-function sw(id, el) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  el.classList.add('on');
-}
-
-// ── INIT ─────────────────────────────────────────────────────────
-if (document.getElementById('today-pill')) document.getElementById('today-pill').textContent = today();
-if (document.getElementById('today-display')) document.getElementById('today-display').textContent = today();
-const _d = new Date();
-const _wk = Math.ceil((((_d - new Date(_d.getFullYear(),0,1))/86400000) + new Date(_d.getFullYear(),0,1).getDay() + 1) / 7);
-if (document.getElementById('today-week')) document.getElementById('today-week').textContent = 'Wk ' + _wk;
-if (UPDATED && UPDATED !== '—') {
-  document.getElementById('page-sub').textContent =
-    'Scottsdale, AZ · Container Dashboard · Updated ' + UPDATED;
-}
-
-// ── TRANSIT REFERENCE ─────────────────────────────────────────────
-(function() {
-  const el = document.getElementById('transit-perf-table');
-  let html = '<table style="width:100%;font-size:11px;border-collapse:collapse">';
-  TRANSIT_REF.forEach(r => {
-    html += `<tr>
-      <td style="padding:3px 0;color:var(--text-2);border-bottom:1px solid var(--border)">${r.label}</td>
-      <td style="padding:3px 0;font-weight:600;text-align:right;border-bottom:1px solid var(--border)">${r.value}</td>
-    </tr>`;
-  });
-  html += '</table>';
-  el.innerHTML = html;
-})();
-
-// ── METRICS + DONUT + PIPELINE ────────────────────────────────────
-(function() {
-  // Metric cards – static labels updated dynamically when data loads
-  const total = CONTAINERS.length;
-  const totalEl = document.getElementById('m-total');
-  if (totalEl) totalEl.textContent = total || '—';
-  if (total && document.getElementById('m-total-sub')) {
-    document.getElementById('m-total-sub').textContent =
-      (CONTAINERS[0].week || '') + ' – ' + (CONTAINERS[total-1].week || '');
-  }
-  const scopedUnits = UNITS.filter(u => u.inScope);
-  const inScope = scopedUnits.length;
-  if (document.getElementById('m-units')) document.getElementById('m-units').textContent = inScope || '—';
-  if (inScope && document.getElementById('m-units-sub')) {
-    const floors = scopedUnits.map(u => u.floor);
-    document.getElementById('m-units-sub').textContent =
-      'Floors ' + Math.min(...floors) + ' – ' + Math.max(...floors);
-  }
-
-  if (!total) return;
-
-  // Count by status
-  const counts = {};
-  CONTAINERS.forEach(c => {
-    const s = normStatus(c.status);
-    counts[s] = (counts[s]||0) + 1;
-  });
-
-  // Donut
-  const canvas = document.getElementById('status-chart');
-  const ctx = canvas.getContext('2d');
-  const cx = 80, cy = 80, r = 68, ir = 40;
-  let angle = -Math.PI / 2;
-  STATUS_ORDER.forEach(s => {
-    const n = counts[s] || 0;
-    if (!n) return;
-    const slice = (n / total) * Math.PI * 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, angle, angle + slice);
-    ctx.arc(cx, cy, ir, angle + slice, angle, true);
-    ctx.closePath();
-    ctx.fillStyle = STATUS_COLORS[s];
-    ctx.fill();
-    angle += slice;
-  });
-  ctx.fillStyle = '#1A1A18';
-  ctx.font = 'bold 20px -apple-system,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(total, cx, cy - 9);
-  ctx.font = '11px -apple-system,sans-serif';
-  ctx.fillStyle = '#9A9A94';
-  ctx.fillText('ctns', cx, cy + 11);
-
-  // Donut legend
-  const legend = document.getElementById('donut-legend');
-  legend.innerHTML = STATUS_ORDER.map(s => {
-    const n = counts[s] || 0;
-    if (!n) return '';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;">
-      <div style="display:flex;align-items:center;gap:5px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLORS[s]};display:inline-block;flex-shrink:0;"></span>
-        <span style="color:var(--text-2)">${STATUS_LABELS[s]}</span>
-      </div>
-      <span style="font-weight:600;color:var(--text)">${n}</span>
-    </div>`;
-  }).join('');
-
-  // Pipeline badges
-  PIPELINE_IDS.forEach(s => {
-    const el = document.getElementById('rp-' + s);
-    if (!el) return;
-    const n = counts[s] || 0;
-    const color = STATUS_DOTS[s];
-    el.innerHTML = n > 0
-      ? `<span style="margin-top:5px;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:${STATUS_COLORS[s]}44;color:${color}">${n}</span>`
-      : `<span style="margin-top:5px;display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;background:#F0EFE8;color:#9A9A94">0</span>`;
-  });
-})();
-
-// ── NEXT UP ──────────────────────────────────────────────────────
-(function() {
-  const el = document.getElementById('next-up-list');
-  if (!CONTAINERS.length) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Run update_dashboard.py to load data.</div>';
-    return;
-  }
-  // Most active (closest to delivery) first — sort by rank descending (DEL=7 last)
-  const upcoming = CONTAINERS
-    .filter(c => normStatus(c.status) !== 'DEL' && c.deliveryDate && c.deliveryDate !== '—')
-    .sort((a, b) => (STATUS_RANK[normStatus(b.status)]||0) - (STATUS_RANK[normStatus(a.status)]||0))
-    .slice(0, 4);
-  if (!upcoming.length) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">All containers delivered.</div>';
-    return;
-  }
-  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let html = '<div style="display:flex;flex-direction:column;">';
-  upcoming.forEach((c, i) => {
-    const s = normStatus(c.status);
-    const sc = STATUS_COLORS[s];
-    const dc = STATUS_DOTS[s];
-    const border = i > 0 ? 'border-top:1px solid var(--border);' : '';
-    const parsed = new Date(c.deliveryDate);
-    const dayOfWeek = !isNaN(parsed) ? DAYS[parsed.getDay()] : '';
-    const parts = c.deliveryDate.split(',');
-    const dateMain = parts[0] || c.deliveryDate;
-    const dateYear = parts[1] ? parts[1].trim() : '';
-    html += `<div style="${border}display:flex;align-items:center;gap:12px;padding:10px 4px;">
-      ${dayOfWeek ? `<div style="background:${sc};color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 8px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;">${dayOfWeek}</div>` : ''}
-      <div style="flex-shrink:0;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.1;">${dateMain}</div>
-        <div style="font-size:9px;color:var(--text-3);">${dateYear}</div>
-      </div>
-      <div style="flex:1;"></div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:12px;font-weight:700;color:var(--text);">CTN ${c.num}</div>
-        <div style="font-size:10px;color:var(--text-3);">${c.floors ? 'Fl. ' + c.floors : '—'}</div>
-      </div>
-      <div style="flex-shrink:0;">
-        <span style="font-size:9px;font-weight:600;color:${dc};background:${sc}44;padding:3px 8px;border-radius:4px;">${STATUS_LABELS[s]}</span>
-      </div>
-    </div>`;
-  });
-  html += '</div>';
-  el.innerHTML = html;
-})();
-
-// ── CONTAINER TABLE ──────────────────────────────────────────────
-function renderContainers() {
-  const tb = document.getElementById('ctn-tbody');
-  if (!CONTAINERS.length) {
-    tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>';
-    return;
-  }
-  tb.innerHTML = CONTAINERS.map(c => {
-    const s = normStatus(c.status);
-    const dot = STATUS_DOTS[s];
-    const bdg = STATUS_BADGE[s];
-    return `<tr>
-      <td><span style="display:inline-flex;align-items:center;gap:5px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>${c.num}
-      </span></td>
-      <td><span class="bdg ${bdg}">${STATUS_LABELS[s]}</span></td>
-      <td>${c.week || '—'}</td>
-      <td style="color:var(--text-3)">${c.floors || '—'}</td>
-      <td>${c.loadDate || '—'}</td>
-      <td>${c.shipDate || '—'}</td>
-      <td style="color:var(--text-2)">${c.vessel1 || '—'}</td>
-      <td style="color:var(--text-2)">${c.vessel2 || '—'}</td>
-      <td>${c.etaLAX || '—'}</td>
-      <td>${c.etaPhoenix || '—'}</td>
-      <td style="font-weight:500">${c.deliveryDate || '—'}</td>
-      <td style="color:var(--text-3)">${c.installDate || '—'}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ── BUILDING MATRIX ──────────────────────────────────────────────
-function renderBuilding() {
-  const gridEl = document.getElementById('bldg-grid');
-  const sideEl = document.getElementById('bldg-sidebar');
-  if (!UNITS.length) {
-    gridEl.innerHTML = '<div class="empty-state"><div class="big">&#127959;</div>Run update_dashboard.py to load unit data</div>';
-    sideEl.innerHTML = '';
-    return;
-  }
-
-  // Unit status: worst (least progressed) among its containers
-  function unitStatus(u) {
-    if (!u.inScope) return null;
-    if (!u.ctns || !u.ctns.length) return 'PROJ';
-    return u.ctns.map(n => {
-      const c = CONTAINERS.find(x => x.num === n);
-      return c ? normStatus(c.status) : 'PROJ';
-    }).reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
-  }
-
-  // Group units by floor
-  const byFloor = {};
-  UNITS.forEach(u => {
-    if (!byFloor[u.floor]) byFloor[u.floor] = [];
-    byFloor[u.floor].push(u);
-  });
-  const floors = Object.keys(byFloor).map(Number).sort((a,b) => b-a);
-
-  // All unit suffixes (unit # % 100) to form columns
-  const allSuffixes = [...new Set(UNITS.map(u => u.unit % 100))].sort((a,b) => a-b);
-
-  // Build matrix table
-  let html = '<table class="bldg-matrix"><thead><tr><th style="text-align:left">Fl.</th>';
-  allSuffixes.forEach(n => { html += `<th>${String(n).padStart(2,'0')}</th>`; });
-  html += '</tr></thead><tbody>';
-
-  floors.forEach(floor => {
-    const units = byFloor[floor];
-    html += `<tr><td class="floor-lbl">${floor}</td>`;
-    allSuffixes.forEach(pos => {
-      const u = units.find(x => x.unit % 100 === pos);
-      if (!u) {
-        html += '<td style="background:var(--bg);border:1px solid var(--border)"></td>';
-        return;
-      }
-      if (!u.inScope) {
-        html += `<td>
-          <div class="mcell" style="background:var(--scope-bg);opacity:.55;">
-            <div class="mcell-id" style="color:var(--text-3)">${u.unit}</div>
-            <div class="mcell-bar" style="background:var(--border)"></div>
-          </div>
-        </td>`;
-        return;
-      }
-      const s = unitStatus(u);
-      const sc = STATUS_COLORS[s] || '#D8EDEA';
-      const ctnList = u.ctns && u.ctns.length ? u.ctns.join(', ') : '—';
-      const tip = `${u.unit} · ${u.type||'—'} · CTN ${ctnList} · ${STATUS_LABELS[s]||s}`;
-      html += `<td style="background:${sc}22">
-        <div class="mcell">
-          <div class="mcell-id" style="background:${sc}18">${u.unit}</div>
-          <div class="mcell-bar" style="background:${sc}"></div>
-          <div class="mcell-tip">${tip}</div>
-        </div>
-      </td>`;
-    });
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  gridEl.innerHTML = html;
-
-  // Sidebar: floor progress
-  function unitStatusForFloor(u) { return unitStatus(u); }
-  let shtml = `<table style="width:100%;border-collapse:collapse;font-size:10px;">
-    <thead><tr>
-      <th style="text-align:left;padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Fl.</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Units</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Del</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">%</th>
-    </tr></thead><tbody>`;
-  floors.forEach(floor => {
-    const inScopeUnits = byFloor[floor].filter(u => u.inScope);
-    const total = inScopeUnits.length;
-    const del = inScopeUnits.filter(u => unitStatusForFloor(u) === 'DEL').length;
-    const pct = total > 0 ? Math.round(del / total * 100) : 0;
-    const barColor = pct === 100 ? '#1A5C47' : pct > 0 ? '#44B594' : '#D8EDEA';
-    shtml += `<tr>
-      <td style="padding:3px 6px;border:1px solid var(--border);font-weight:700;color:var(--text-2)">${floor}</td>
-      <td style="padding:3px 6px;border:1px solid var(--border);text-align:center">${total}</td>
-      <td style="padding:3px 6px;border:1px solid var(--border);text-align:center;color:${del===total&&total>0?'#1A5C47':'var(--text-2)'}">${del}</td>
-      <td style="padding:3px 6px;border:1px solid var(--border);min-width:80px;">
-        <div style="display:flex;align-items:center;gap:4px;">
-          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;"></div>
-          </div>
-          <span style="font-size:9px;color:var(--text-2);min-width:26px;text-align:right">${pct}%</span>
-        </div>
-      </td>
-    </tr>`;
-  });
-  shtml += '</tbody></table>';
-  sideEl.innerHTML = shtml;
-}
-
-// ── UNIT DROPDOWN ────────────────────────────────────────────────
-function renderUnitDropdown() {
-  const sel = document.getElementById('f-unit');
-  if (!UNITS.length) return;
-  const byFloor = {};
-  UNITS.filter(u => u.inScope).forEach(u => {
-    if (!byFloor[u.floor]) byFloor[u.floor] = [];
-    byFloor[u.floor].push(u);
-  });
-  const floors = Object.keys(byFloor).map(Number).sort((a,b) => a-b);
-  sel.innerHTML = '<option value="">— Select unit —</option>' + floors.map(f =>
-    `<optgroup label="Floor ${f}">` +
-    byFloor[f].map(u => `<option value="${u.unit}">${u.unit}${u.type ? ' · ' + u.type : ''}</option>`).join('') +
-    '</optgroup>'
-  ).join('');
-}
-
-// ── DAMAGE / OPEN ITEMS ──────────────────────────────────────────
-const KEY = 'omm_damage_items_v1';
-function loadItems() { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e) { return []; } }
-function saveItems(items) { localStorage.setItem(KEY, JSON.stringify(items)); }
-
-function renderItems() {
-  const items = loadItems();
-  const open   = items.filter(i => i.status === 'Open');
-  const closed = items.filter(i => i.status === 'Closed');
-  document.getElementById('dmg-count-label').textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' logged';
-  document.getElementById('open-count').textContent   = open.length;
-  document.getElementById('closed-count').textContent = closed.length;
-  document.getElementById('empty-state').style.display       = items.length === 0 ? 'block' : 'none';
-  document.getElementById('dmg-open-group').style.display    = open.length > 0   ? 'block' : 'none';
-  document.getElementById('dmg-closed-group').style.display  = closed.length > 0 ? 'block' : 'none';
-  function row(item) {
-    const cl = item.status === 'Closed';
-    return `<tr>
-      <td style="font-weight:600">${item.unit}</td><td>${item.date}</td>
-      <td class="mono">${item.code||'&#8212;'}</td><td>${item.component||'&#8212;'}</td>
-      <td>${item.issue}</td><td>${item.photo||'&#8212;'}</td><td>${item.comment||'&#8212;'}</td>
-      <td><span class="bdg ${cl?'b-closed':'b-open'}">${item.status}</span></td>
-      <td>
-        ${!cl ? `<button onclick="closeItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:#1A5C2A">Close</button>` : ''}
-        <button onclick="deleteItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:var(--text-3);margin-left:4px">Remove</button>
-      </td>
-    </tr>`;
-  }
-  document.getElementById('open-tbody').innerHTML   = open.map(row).join('');
-  document.getElementById('closed-tbody').innerHTML = closed.map(row).join('');
-}
-
-function submitItem() {
-  const unit  = document.getElementById('f-unit').value;
-  const issue = document.getElementById('f-issue').value.trim();
-  if (!unit)  { showMsg('Please select a unit.', true); return; }
-  if (!issue) { showMsg('Please describe the issue.', true); return; }
-  const items = loadItems();
-  items.unshift({ id:Date.now(), unit, date:today(), dateISO:todayISO(),
-    code:      document.getElementById('f-code').value.trim(),
-    component: document.getElementById('f-component').value.trim(),
-    issue, photo:   document.getElementById('f-photo').value.trim(),
-    comment:   document.getElementById('f-comment').value.trim(), status:'Open' });
-  saveItems(items); renderItems();
-  ['f-unit','f-code','f-component','f-issue','f-photo','f-comment'].forEach(id => { document.getElementById(id).value = ''; });
-  showMsg('Item logged.', false);
-}
-function showMsg(t, e) {
-  const m = document.getElementById('form-msg');
-  m.textContent = t; m.className = 'form-msg' + (e ? ' err' : ''); m.style.display = 'inline';
-  setTimeout(() => { m.style.display = 'none'; }, 3200);
-}
-function closeItem(id) {
-  const items = loadItems(); const i = items.find(x => x.id === id);
-  if (i) { i.status = 'Closed'; saveItems(items); renderItems(); }
-}
-function deleteItem(id) {
-  if (!confirm('Remove permanently?')) return;
-  saveItems(loadItems().filter(x => x.id !== id)); renderItems();
-}
-function exportCSV() {
-  const items = loadItems();
-  if (!items.length) { alert('No items to export.'); return; }
-  const hdr = ['Unit','Date','Code','Component','Issue','Photo','Comment','Status'];
-  const rows = items.map(i => [i.unit,i.date,i.code||'',i.component||'',i.issue,i.photo||'',i.comment||'',i.status]
-    .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
-  const blob = new Blob([[hdr.join(','), ...rows].join('\r\n')], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url;
-  a.download = 'OMM_Damage_' + todayISO() + '.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-renderContainers();
+const UPDATED = "Jun 25, 2026 at 05:18 PM";
+// DATA_END
+
+// ── STATUS CONFIG ────────────────────────────────────────────────
+const STATUS_RANK   = { DEL:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
+const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#D8EDEA' };
+const STATUS_DOTS   = { DEL:'#1A5C47', RAIL:'#AA4010', PORT:'#5A4AAA', ENR:'#2A5AAA', LDD:'#2A7A3A', LDG:'#888880', PROJ:'#D4890A' };
+const STATUS_LABELS = { DEL:'Delivered', RAIL:'Phoenix RR', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Projected' };
+const STATUS_BADGE  = { DEL:'b-DEL', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
+const STATUS_ORDER  = ['DEL','RAIL','PORT','ENR','LDD','LDG','PROJ'];
+const PIPELINE_IDS  = ['DEL','RAIL','PORT','ENR','LDD','LDG'];
+
+const TRANSIT_REF = [
+  { label:'Leg 1: Italy → Colombia',  value:'~3 wks' },
+  { label:'Leg 2: Colombia → LAX',    value:'~3 wks' },
+  { label:'Port (LAX) processing',    value:'~1 wk'  },
+  { label:'Rail: LAX → Phoenix RR',   value:'~3 days'},
+  { label:'Total sea transit',         value:'~7–8 wks'},
+];
+
+function normStatus(code) {
+  const c = (code || 'PROJ').toString().trim().toUpperCase();
+  return STATUS_RANK[c] ? c : 'PROJ';
+}
+function today() { return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function sw(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+if (document.getElementById('today-pill')) document.getElementById('today-pill').textContent = today();
+if (document.getElementById('today-display')) document.getElementById('today-display').textContent = today();
+const _d = new Date();
+const _wk = Math.ceil((((_d - new Date(_d.getFullYear(),0,1))/86400000) + new Date(_d.getFullYear(),0,1).getDay() + 1) / 7);
+if (document.getElementById('today-week')) document.getElementById('today-week').textContent = 'Wk ' + _wk;
+if (UPDATED && UPDATED !== '—') {
+  document.getElementById('page-sub').textContent =
+    'Scottsdale, AZ · Container Dashboard · Updated ' + UPDATED;
+}
+
+// ── TRANSIT REFERENCE ─────────────────────────────────────────────
+(function() {
+  const el = document.getElementById('transit-perf-table');
+  let html = '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+  TRANSIT_REF.forEach(r => {
+    html += `<tr>
+      <td style="padding:3px 0;color:var(--text-2);border-bottom:1px solid var(--border)">${r.label}</td>
+      <td style="padding:3px 0;font-weight:600;text-align:right;border-bottom:1px solid var(--border)">${r.value}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  el.innerHTML = html;
+})();
+
+// ── METRICS + DONUT + PIPELINE ────────────────────────────────────
+(function() {
+  // Metric cards – static labels updated dynamically when data loads
+  const total = CONTAINERS.length;
+  const totalEl = document.getElementById('m-total');
+  if (totalEl) totalEl.textContent = total || '—';
+  if (total && document.getElementById('m-total-sub')) {
+    document.getElementById('m-total-sub').textContent =
+      (CONTAINERS[0].week || '') + ' – ' + (CONTAINERS[total-1].week || '');
+  }
+  const scopedUnits = UNITS.filter(u => u.inScope);
+  const inScope = scopedUnits.length;
+  if (document.getElementById('m-units')) document.getElementById('m-units').textContent = inScope || '—';
+  if (inScope && document.getElementById('m-units-sub')) {
+    const floors = scopedUnits.map(u => u.floor);
+    document.getElementById('m-units-sub').textContent =
+      'Floors ' + Math.min(...floors) + ' – ' + Math.max(...floors);
+  }
+
+  if (!total) return;
+
+  // Count by status
+  const counts = {};
+  CONTAINERS.forEach(c => {
+    const s = normStatus(c.status);
+    counts[s] = (counts[s]||0) + 1;
+  });
+
+  // Donut
+  const canvas = document.getElementById('status-chart');
+  const ctx = canvas.getContext('2d');
+  const cx = 80, cy = 80, r = 68, ir = 40;
+  let angle = -Math.PI / 2;
+  STATUS_ORDER.forEach(s => {
+    const n = counts[s] || 0;
+    if (!n) return;
+    const slice = (n / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.arc(cx, cy, ir, angle + slice, angle, true);
+    ctx.closePath();
+    ctx.fillStyle = STATUS_COLORS[s];
+    ctx.fill();
+    angle += slice;
+  });
+  ctx.fillStyle = '#1A1A18';
+  ctx.font = 'bold 20px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(total, cx, cy - 9);
+  ctx.font = '11px -apple-system,sans-serif';
+  ctx.fillStyle = '#9A9A94';
+  ctx.fillText('ctns', cx, cy + 11);
+
+  // Donut legend
+  const legend = document.getElementById('donut-legend');
+  legend.innerHTML = STATUS_ORDER.map(s => {
+    const n = counts[s] || 0;
+    if (!n) return '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLORS[s]};display:inline-block;flex-shrink:0;"></span>
+        <span style="color:var(--text-2)">${STATUS_LABELS[s]}</span>
+      </div>
+      <span style="font-weight:600;color:var(--text)">${n}</span>
+    </div>`;
+  }).join('');
+
+  // Pipeline badges
+  PIPELINE_IDS.forEach(s => {
+    const el = document.getElementById('rp-' + s);
+    if (!el) return;
+    const n = counts[s] || 0;
+    const color = STATUS_DOTS[s];
+    el.innerHTML = n > 0
+      ? `<span style="margin-top:5px;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:${STATUS_COLORS[s]}44;color:${color}">${n}</span>`
+      : `<span style="margin-top:5px;display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;background:#F0EFE8;color:#9A9A94">0</span>`;
+  });
+})();
+
+// ── NEXT UP ──────────────────────────────────────────────────────
+(function() {
+  const el = document.getElementById('next-up-list');
+  if (!CONTAINERS.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Run update_dashboard.py to load data.</div>';
+    return;
+  }
+  // Most active (closest to delivery) first — sort by rank descending (DEL=7 last)
+  const upcoming = CONTAINERS
+    .filter(c => normStatus(c.status) !== 'DEL' && c.deliveryDate && c.deliveryDate !== '—')
+    .sort((a, b) => (STATUS_RANK[normStatus(b.status)]||0) - (STATUS_RANK[normStatus(a.status)]||0))
+    .slice(0, 4);
+  if (!upcoming.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">All containers delivered.</div>';
+    return;
+  }
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = '<div style="display:flex;flex-direction:column;">';
+  upcoming.forEach((c, i) => {
+    const s = normStatus(c.status);
+    const sc = STATUS_COLORS[s];
+    const dc = STATUS_DOTS[s];
+    const border = i > 0 ? 'border-top:1px solid var(--border);' : '';
+    const parsed = new Date(c.deliveryDate);
+    const dayOfWeek = !isNaN(parsed) ? DAYS[parsed.getDay()] : '';
+    const parts = c.deliveryDate.split(',');
+    const dateMain = parts[0] || c.deliveryDate;
+    const dateYear = parts[1] ? parts[1].trim() : '';
+    html += `<div style="${border}display:flex;align-items:center;gap:12px;padding:10px 4px;">
+      ${dayOfWeek ? `<div style="background:${sc};color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 8px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;">${dayOfWeek}</div>` : ''}
+      <div style="flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.1;">${dateMain}</div>
+        <div style="font-size:9px;color:var(--text-3);">${dateYear}</div>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);">CTN ${c.num}</div>
+        <div style="font-size:10px;color:var(--text-3);">${c.floors ? 'Fl. ' + c.floors : '—'}</div>
+      </div>
+      <div style="flex-shrink:0;">
+        <span style="font-size:9px;font-weight:600;color:${dc};background:${sc}44;padding:3px 8px;border-radius:4px;">${STATUS_LABELS[s]}</span>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+})();
+
+// ── CONTAINER TABLE ──────────────────────────────────────────────
+function renderContainers() {
+  const tb = document.getElementById('ctn-tbody');
+  if (!CONTAINERS.length) {
+    tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>';
+    return;
+  }
+  tb.innerHTML = CONTAINERS.map(c => {
+    const s = normStatus(c.status);
+    const dot = STATUS_DOTS[s];
+    const bdg = STATUS_BADGE[s];
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:5px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>${c.num}
+      </span></td>
+      <td><span class="bdg ${bdg}">${STATUS_LABELS[s]}</span></td>
+      <td>${c.week || '—'}</td>
+      <td style="color:var(--text-3)">${c.floors || '—'}</td>
+      <td>${c.loadDate || '—'}</td>
+      <td>${c.shipDate || '—'}</td>
+      <td style="color:var(--text-2)">${c.vessel1 || '—'}</td>
+      <td style="color:var(--text-2)">${c.vessel2 || '—'}</td>
+      <td>${c.etaLAX || '—'}</td>
+      <td>${c.etaPhoenix || '—'}</td>
+      <td style="font-weight:500">${c.deliveryDate || '—'}</td>
+      <td style="color:var(--text-3)">${c.installDate || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BUILDING MATRIX ──────────────────────────────────────────────
+function renderBuilding() {
+  const gridEl = document.getElementById('bldg-grid');
+  const sideEl = document.getElementById('bldg-sidebar');
+  if (!UNITS.length) {
+    gridEl.innerHTML = '<div class="empty-state"><div class="big">&#127959;</div>Run update_dashboard.py to load unit data</div>';
+    sideEl.innerHTML = '';
+    return;
+  }
+
+  // Unit status: worst (least progressed) among its containers
+  function unitStatus(u) {
+    if (!u.inScope) return null;
+    if (!u.ctns || !u.ctns.length) return 'PROJ';
+    return u.ctns.map(n => {
+      const c = CONTAINERS.find(x => x.num === n);
+      return c ? normStatus(c.status) : 'PROJ';
+    }).reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
+  }
+
+  // Group units by floor
+  const byFloor = {};
+  UNITS.forEach(u => {
+    if (!byFloor[u.floor]) byFloor[u.floor] = [];
+    byFloor[u.floor].push(u);
+  });
+  const floors = Object.keys(byFloor).map(Number).sort((a,b) => b-a);
+
+  // All unit suffixes (unit # % 100) to form columns
+  const allSuffixes = [...new Set(UNITS.map(u => u.unit % 100))].sort((a,b) => a-b);
+
+  // Build matrix table
+  let html = '<table class="bldg-matrix"><thead><tr><th style="text-align:left">Fl.</th>';
+  allSuffixes.forEach(n => { html += `<th>${String(n).padStart(2,'0')}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  floors.forEach(floor => {
+    const units = byFloor[floor];
+    html += `<tr><td class="floor-lbl">${floor}</td>`;
+    allSuffixes.forEach(pos => {
+      const u = units.find(x => x.unit % 100 === pos);
+      if (!u) {
+        html += '<td style="background:var(--bg);border:1px solid var(--border)"></td>';
+        return;
+      }
+      if (!u.inScope) {
+        html += `<td>
+          <div class="mcell" style="background:var(--scope-bg);opacity:.55;">
+            <div class="mcell-id" style="color:var(--text-3)">${u.unit}</div>
+            <div class="mcell-bar" style="background:var(--border)"></div>
+          </div>
+        </td>`;
+        return;
+      }
+      const s = unitStatus(u);
+      const sc = STATUS_COLORS[s] || '#D8EDEA';
+      const ctnList = u.ctns && u.ctns.length ? u.ctns.join(', ') : '—';
+      const tip = `${u.unit} · ${u.type||'—'} · CTN ${ctnList} · ${STATUS_LABELS[s]||s}`;
+      html += `<td style="background:${sc}22">
+        <div class="mcell">
+          <div class="mcell-id" style="background:${sc}18">${u.unit}</div>
+          <div class="mcell-bar" style="background:${sc}"></div>
+          <div class="mcell-tip">${tip}</div>
+        </div>
+      </td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  gridEl.innerHTML = html;
+
+  // Sidebar: floor progress
+  function unitStatusForFloor(u) { return unitStatus(u); }
+  let shtml = `<table style="width:100%;border-collapse:collapse;font-size:10px;">
+    <thead><tr>
+      <th style="text-align:left;padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Fl.</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Units</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Del</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">%</th>
+    </tr></thead><tbody>`;
+  floors.forEach(floor => {
+    const inScopeUnits = byFloor[floor].filter(u => u.inScope);
+    const total = inScopeUnits.length;
+    const del = inScopeUnits.filter(u => unitStatusForFloor(u) === 'DEL').length;
+    const pct = total > 0 ? Math.round(del / total * 100) : 0;
+    const barColor = pct === 100 ? '#1A5C47' : pct > 0 ? '#44B594' : '#D8EDEA';
+    shtml += `<tr>
+      <td style="padding:3px 6px;border:1px solid var(--border);font-weight:700;color:var(--text-2)">${floor}</td>
+      <td style="padding:3px 6px;border:1px solid var(--border);text-align:center">${total}</td>
+      <td style="padding:3px 6px;border:1px solid var(--border);text-align:center;color:${del===total&&total>0?'#1A5C47':'var(--text-2)'}">${del}</td>
+      <td style="padding:3px 6px;border:1px solid var(--border);min-width:80px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${barColor};border-radius:3px;"></div>
+          </div>
+          <span style="font-size:9px;color:var(--text-2);min-width:26px;text-align:right">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  });
+  shtml += '</tbody></table>';
+  sideEl.innerHTML = shtml;
+}
+
+// ── UNIT DROPDOWN ────────────────────────────────────────────────
+function renderUnitDropdown() {
+  const sel = document.getElementById('f-unit');
+  if (!UNITS.length) return;
+  const byFloor = {};
+  UNITS.filter(u => u.inScope).forEach(u => {
+    if (!byFloor[u.floor]) byFloor[u.floor] = [];
+    byFloor[u.floor].push(u);
+  });
+  const floors = Object.keys(byFloor).map(Number).sort((a,b) => a-b);
+  sel.innerHTML = '<option value="">— Select unit —</option>' + floors.map(f =>
+    `<optgroup label="Floor ${f}">` +
+    byFloor[f].map(u => `<option value="${u.unit}">${u.unit}${u.type ? ' · ' + u.type : ''}</option>`).join('') +
+    '</optgroup>'
+  ).join('');
+}
+
+// ── DAMAGE / OPEN ITEMS ──────────────────────────────────────────
+const KEY = 'omm_damage_items_v1';
+function loadItems() { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e) { return []; } }
+function saveItems(items) { localStorage.setItem(KEY, JSON.stringify(items)); }
+
+function renderItems() {
+  const items = loadItems();
+  const open   = items.filter(i => i.status === 'Open');
+  const closed = items.filter(i => i.status === 'Closed');
+  document.getElementById('dmg-count-label').textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' logged';
+  document.getElementById('open-count').textContent   = open.length;
+  document.getElementById('closed-count').textContent = closed.length;
+  document.getElementById('empty-state').style.display       = items.length === 0 ? 'block' : 'none';
+  document.getElementById('dmg-open-group').style.display    = open.length > 0   ? 'block' : 'none';
+  document.getElementById('dmg-closed-group').style.display  = closed.length > 0 ? 'block' : 'none';
+  function row(item) {
+    const cl = item.status === 'Closed';
+    return `<tr>
+      <td style="font-weight:600">${item.unit}</td><td>${item.date}</td>
+      <td class="mono">${item.code||'&#8212;'}</td><td>${item.component||'&#8212;'}</td>
+      <td>${item.issue}</td><td>${item.photo||'&#8212;'}</td><td>${item.comment||'&#8212;'}</td>
+      <td><span class="bdg ${cl?'b-closed':'b-open'}">${item.status}</span></td>
+      <td>
+        ${!cl ? `<button onclick="closeItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:#1A5C2A">Close</button>` : ''}
+        <button onclick="deleteItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:var(--text-3);margin-left:4px">Remove</button>
+      </td>
+    </tr>`;
+  }
+  document.getElementById('open-tbody').innerHTML   = open.map(row).join('');
+  document.getElementById('closed-tbody').innerHTML = closed.map(row).join('');
+}
+
+function submitItem() {
+  const unit  = document.getElementById('f-unit').value;
+  const issue = document.getElementById('f-issue').value.trim();
+  if (!unit)  { showMsg('Please select a unit.', true); return; }
+  if (!issue) { showMsg('Please describe the issue.', true); return; }
+  const items = loadItems();
+  items.unshift({ id:Date.now(), unit, date:today(), dateISO:todayISO(),
+    code:      document.getElementById('f-code').value.trim(),
+    component: document.getElementById('f-component').value.trim(),
+    issue, photo:   document.getElementById('f-photo').value.trim(),
+    comment:   document.getElementById('f-comment').value.trim(), status:'Open' });
+  saveItems(items); renderItems();
+  ['f-unit','f-code','f-component','f-issue','f-photo','f-comment'].forEach(id => { document.getElementById(id).value = ''; });
+  showMsg('Item logged.', false);
+}
+function showMsg(t, e) {
+  const m = document.getElementById('form-msg');
+  m.textContent = t; m.className = 'form-msg' + (e ? ' err' : ''); m.style.display = 'inline';
+  setTimeout(() => { m.style.display = 'none'; }, 3200);
+}
+function closeItem(id) {
+  const items = loadItems(); const i = items.find(x => x.id === id);
+  if (i) { i.status = 'Closed'; saveItems(items); renderItems(); }
+}
+function deleteItem(id) {
+  if (!confirm('Remove permanently?')) return;
+  saveItems(loadItems().filter(x => x.id !== id)); renderItems();
+}
+function exportCSV() {
+  const items = loadItems();
+  if (!items.length) { alert('No items to export.'); return; }
+  const hdr = ['Unit','Date','Code','Component','Issue','Photo','Comment','Status'];
+  const rows = items.map(i => [i.unit,i.date,i.code||'',i.component||'',i.issue,i.photo||'',i.comment||'',i.status]
+    .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+  const blob = new Blob([[hdr.join(','), ...rows].join('\r\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'OMM_Damage_' + todayISO() + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+renderContainers();
 renderBu
