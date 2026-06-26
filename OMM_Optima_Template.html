@@ -266,14 +266,14 @@ tbody tr:hover td { background: var(--bg); }
       <div id="donut-legend" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:0 4px;"></div>
     </div>
 
-    <!-- Next up (compact fixed width) -->
-    <div style="width:260px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 16px;display:flex;flex-direction:column;">
+    <!-- Next up (stretched) -->
+    <div style="flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 16px;display:flex;flex-direction:column;">
       <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Next up</div>
       <div id="next-up-list" style="flex:1;"></div>
     </div>
 
-    <!-- Calendar (takes majority of remaining space) -->
-    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;min-width:0;align-self:flex-start;">
+    <!-- Calendar (compact fixed width) -->
+    <div style="width:220px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;">
       <div style="margin-bottom:14px;">
         <div id="cal-title" style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;"></div>
       </div>
@@ -613,24 +613,58 @@ function renderCal() {
   const first = new Date(y, m, 1).getDay();
   const total = new Date(y, m + 1, 0).getDate();
 
-  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;">';
   DAYS.forEach(d => {
-    html += `<div style="text-align:center;font-size:9px;font-weight:700;color:var(--text-3);padding:2px 0 4px;text-transform:uppercase;">${d}</div>`;
+    html += `<div style="text-align:center;font-size:8px;font-weight:700;color:var(--text-3);padding:1px 0 3px;text-transform:uppercase;">${d[0]}</div>`;
   });
-  for (let i = 0; i < first; i++) html += '<div style="height:38px;"></div>';
+  // Next month delivery days
+  const nextM = m === 11 ? 0 : m + 1;
+  const nextY = m === 11 ? y + 1 : y;
+  const nextDeliveryDays = new Set();
+  CONTAINERS.forEach(c => {
+    const d = parseDate(c.deliveryDate);
+    if (d && d.getFullYear() === nextY && d.getMonth() === nextM) nextDeliveryDays.add(d.getDate());
+  });
+
+  for (let i = 0; i < first; i++) html += '<div style="height:26px;"></div>';
+
+  // Current month
   for (let d = 1; d <= total; d++) {
     const isToday = d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
     const hasDel = deliveryDays.has(d);
-    const dayBg   = isToday ? 'background:var(--accent);' : '';
+    const dayBg   = isToday ? 'background:var(--accent);' : (hasDel ? 'background:#FFF4EC;' : '');
     const dayColor = isToday ? 'color:#fff;font-weight:700;' : 'color:var(--text-2);';
     const dotHtml  = hasDel
-      ? `<div style="display:flex;justify-content:center;margin-top:4px;"><div title="Delivery" style="width:8px;height:8px;border-radius:50%;background:#E87722;"></div></div>`
+      ? `<div style="display:flex;justify-content:center;margin-top:2px;"><div title="Delivery" style="width:6px;height:6px;border-radius:50%;background:#E87722;"></div></div>`
       : '';
-    html += `<div style="height:38px;border-radius:5px;padding:3px 2px 2px;${dayBg}${hasDel && !isToday ? 'background:#FFF4EC;' : ''}">
-      <div style="text-align:center;font-size:11px;${dayColor}">${d}</div>
-      ${dotHtml}
-    </div>`;
+    html += `<div style="height:26px;border-radius:4px;padding:2px 1px 1px;${dayBg}">
+      <div style="text-align:center;font-size:10px;${dayColor}">${d}</div>${dotHtml}</div>`;
   }
+
+  // Next month peek — fill tail of last September row, then one full week
+  const cellsSoFar = first + total;
+  const fillCount = cellsSoFar % 7 === 0 ? 0 : 7 - (cellsSoFar % 7); // cells left in last row
+
+  // Fill the rest of the current row with Oct 1, 2, 3...
+  for (let d = 1; d <= fillCount; d++) {
+    const hasDel = nextDeliveryDays.has(d);
+    const dotHtml = hasDel ? `<div style="display:flex;justify-content:center;margin-top:2px;"><div style="width:6px;height:6px;border-radius:50%;background:#E87722;"></div></div>` : '';
+    html += `<div style="height:26px;border-radius:4px;padding:2px 1px 1px;${hasDel?'background:#FFF4EC;':''}"><div style="text-align:center;font-size:10px;color:var(--text-3);opacity:.5;">${d}</div>${dotHtml}</div>`;
+  }
+
+  // Month label spanning full row
+  html += `<div style="grid-column:1/-1;font-size:8px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;padding:4px 0 2px;border-top:1px solid var(--border);margin-top:2px;">${MONTHS[nextM]}</div>`;
+
+  // Next row: start at the correct day-of-week for Oct (fillCount+1)
+  const nextRowStart = fillCount + 1;
+  const nextRowDow = new Date(nextY, nextM, nextRowStart).getDay();
+  for (let i = 0; i < nextRowDow; i++) html += '<div style="height:26px;"></div>';
+  for (let d = nextRowStart; d <= nextRowStart + 6; d++) {
+    const hasDel = nextDeliveryDays.has(d);
+    const dotHtml = hasDel ? `<div style="display:flex;justify-content:center;margin-top:2px;"><div style="width:6px;height:6px;border-radius:50%;background:#E87722;"></div></div>` : '';
+    html += `<div style="height:26px;border-radius:4px;padding:2px 1px 1px;${hasDel?'background:#FFF4EC;':''}"><div style="text-align:center;font-size:10px;color:var(--text-3);opacity:.5;">${d}</div>${dotHtml}</div>`;
+  }
+
   html += '</div>';
   document.getElementById('cal-grid').innerHTML = html;
 }
