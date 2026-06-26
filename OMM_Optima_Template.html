@@ -12,7 +12,7 @@
   --border-strong: rgba(0,0,0,0.18);
   --text: #1A1A18;
   --text-2: #5C5C58;
-  --text-3: #9A9A94;
+  --text-3: #6A6A66;
   --accent: #1A3A2A;
   --del-bg:  #E3F0EE;  --del-text:  #0D5040;
   --rail-bg: #FAF0E8;  --rail-text: #703010;
@@ -63,7 +63,7 @@ body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'S
 
 /* Metric cards */
 .mc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
-.mc .lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.mc .lbl { font-size: 11px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
 .mc .val { font-size: 22px; font-weight: 600; line-height: 1; }
 .mc .vsub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
 
@@ -233,57 +233,53 @@ tbody tr:hover td { background: var(--bg); }
 <!-- ===== CONTAINER SCHEDULE ===== -->
 <div id="ctn" class="panel on">
 
-  <!-- Top row: metrics + transit | donut | next up -->
-  <!-- Single row: Metrics | Transit | Donut | Next Up + Calendar -->
+  <!-- Single row: [Left col] | [Donut] | [Next Up compact] | [Calendar wide] -->
   <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
 
-    <!-- Total containers -->
-    <div class="mc" style="margin:0;flex-shrink:0;">
-      <div class="lbl">Total containers</div>
-      <div class="val" id="m-total">—</div>
-      <div class="vsub" id="m-total-sub">—</div>
-    </div>
+    <!-- Left column: [Total | Units] on top, [Transit] spanning below -->
+    <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;width:300px;">
 
-    <!-- Units in scope -->
-    <div class="mc" style="margin:0;flex-shrink:0;">
-      <div class="lbl">Units in scope</div>
-      <div class="val" id="m-units">—</div>
-      <div class="vsub" id="m-units-sub">—</div>
-    </div>
+      <div style="display:flex;gap:10px;">
+        <div class="mc" style="margin:0;flex:1;">
+          <div class="lbl">Total containers</div>
+          <div class="val" id="m-total">—</div>
+          <div class="vsub" id="m-total-sub">—</div>
+        </div>
+        <div class="mc" style="margin:0;flex:1;">
+          <div class="lbl">Units in scope</div>
+          <div class="val" id="m-units">—</div>
+          <div class="vsub" id="m-units-sub">—</div>
+        </div>
+      </div>
 
-    <!-- Transit reference -->
-    <div class="mc" style="margin:0;flex-shrink:0;padding:12px 16px;">
-      <div class="lbl" style="margin-bottom:8px;">Transit reference</div>
-      <div id="transit-perf-table"></div>
+      <div class="mc" style="margin:0;flex:1;padding:12px 16px;">
+        <div class="lbl" style="margin-bottom:8px;">Transit reference</div>
+        <div id="transit-perf-table"></div>
+      </div>
+
     </div>
 
     <!-- Donut chart -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:10px;">
-      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Container status</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;">Container status</div>
       <canvas id="status-chart" width="160" height="160"></canvas>
       <div id="donut-legend" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:0 4px;"></div>
     </div>
 
-    <!-- Next up + Calendar stacked -->
-    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0;">
-
-      <!-- Next up -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;flex:1;display:flex;flex-direction:column;">
-        <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Next up</div>
-        <div id="next-up-list" style="flex:1;"></div>
-      </div>
-
-      <!-- Calendar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <button onclick="calNav(-1)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text-2);font-family:inherit;">&#8249;</button>
-          <div id="cal-title" style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;"></div>
-          <button onclick="calNav(1)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text-2);font-family:inherit;">&#8250;</button>
-        </div>
-        <div id="cal-grid"></div>
-      </div>
-
+    <!-- Next up (compact fixed width) -->
+    <div style="width:260px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 16px;display:flex;flex-direction:column;">
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Next up</div>
+      <div id="next-up-list" style="flex:1;"></div>
     </div>
+
+    <!-- Calendar (takes majority of remaining space) -->
+    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;min-width:0;align-self:flex-start;">
+      <div style="margin-bottom:14px;">
+        <div id="cal-title" style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;"></div>
+      </div>
+      <div id="cal-grid"></div>
+    </div>
+
   </div>
 
   <!-- Route pipeline -->
@@ -438,7 +434,7 @@ const UPDATED = "—";
 
 // ── STATUS CONFIG ────────────────────────────────────────────────
 const STATUS_RANK   = { DEL:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
-const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#D8EDEA' };
+const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#A8D4CE' };
 const STATUS_DOTS   = { DEL:'#1A5C47', RAIL:'#AA4010', PORT:'#5A4AAA', ENR:'#2A5AAA', LDD:'#2A7A3A', LDG:'#888880', PROJ:'#D4890A' };
 const STATUS_LABELS = { DEL:'Delivered', RAIL:'Phoenix RR', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Projected' };
 const STATUS_BADGE  = { DEL:'b-DEL', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
@@ -480,11 +476,11 @@ if (UPDATED && UPDATED !== '—') {
 // ── TRANSIT REFERENCE ─────────────────────────────────────────────
 (function() {
   const el = document.getElementById('transit-perf-table');
-  let html = '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+  let html = '<table style="width:100%;font-size:13px;border-collapse:collapse">';
   TRANSIT_REF.forEach(r => {
     html += `<tr>
-      <td style="padding:3px 0;color:var(--text-2);border-bottom:1px solid var(--border)">${r.label}</td>
-      <td style="padding:3px 0;font-weight:600;text-align:right;border-bottom:1px solid var(--border)">${r.value}</td>
+      <td style="padding:4px 0;color:var(--text-2);border-bottom:1px solid var(--border)">${r.label}</td>
+      <td style="padding:4px 0;font-weight:600;text-align:right;border-bottom:1px solid var(--border)">${r.value}</td>
     </tr>`;
   });
   html += '</table>';
@@ -545,19 +541,23 @@ if (UPDATED && UPDATED !== '—') {
   ctx.fillStyle = '#9A9A94';
   ctx.fillText('ctns', cx, cy + 11);
 
-  // Donut legend
+  // Donut legend — always show Projected + Delivered
   const legend = document.getElementById('donut-legend');
-  legend.innerHTML = STATUS_ORDER.map(s => {
-    const n = counts[s] || 0;
-    if (!n) return '';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;">
-      <div style="display:flex;align-items:center;gap:5px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLORS[s]};display:inline-block;flex-shrink:0;"></span>
-        <span style="color:var(--text-2)">${STATUS_LABELS[s]}</span>
+  const projCount = counts['PROJ'] || 0;
+  const delCount  = counts['DEL']  || 0;
+  const legendRows = [
+    { color: STATUS_COLORS['PROJ'], label: 'Projected', n: projCount },
+    { color: STATUS_COLORS['DEL'],  label: 'Delivered',  n: delCount  },
+  ];
+  legend.innerHTML = legendRows.map(row =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:3px 0;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:${row.color};display:inline-block;flex-shrink:0;"></span>
+        <span style="color:var(--text-2);font-weight:500;">${row.label}</span>
       </div>
-      <span style="font-weight:600;color:var(--text)">${n}</span>
-    </div>`;
-  }).join('');
+      <span style="font-weight:700;color:var(--text);font-size:14px;">${row.n}</span>
+    </div>`
+  ).join('');
 
   // Pipeline badges — always show "Label · N" so count is visible for every step
   PIPELINE_IDS.forEach(s => {
@@ -574,22 +574,62 @@ if (UPDATED && UPDATED !== '—') {
 })();
 
 // ── CALENDAR ─────────────────────────────────────────────────────
-let calDate = new Date();
-function calNav(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCal(); }
+// Shows the month of the next upcoming delivery — no navigation.
 function renderCal() {
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MMAP = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const y = calDate.getFullYear(), m = calDate.getMonth();
-  document.getElementById('cal-title').textContent = MONTHS[m] + ' ' + y;
-  const first = new Date(y, m, 1).getDay();
-  const total = new Date(y, m+1, 0).getDate();
   const today = new Date();
+
+  // Parse "Mon DD, YYYY" → Date object (returns null if invalid)
+  function parseDate(str) {
+    if (!str || str === '—') return null;
+    const p = str.match(/(\w{3})\s+(\d+),\s+(\d{4})/);
+    if (!p || MMAP[p[1]] === undefined) return null;
+    return new Date(parseInt(p[3]), MMAP[p[1]], parseInt(p[2]));
+  }
+
+  // Find the next upcoming delivery (earliest delivery date >= today)
+  const upcoming = CONTAINERS
+    .map(c => ({ num: c.num, date: parseDate(c.deliveryDate) }))
+    .filter(c => c.date && c.date >= today)
+    .sort((a, b) => a.date - b.date);
+
+  // Determine which month to show
+  const calDate = upcoming.length ? upcoming[0].date : today;
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+
+  document.getElementById('cal-title').textContent = MONTHS[m] + ' ' + y;
+
+  // Build delivery map for this month only
+  const deliveryDays = new Set();
+  CONTAINERS.forEach(c => {
+    const d = parseDate(c.deliveryDate);
+    if (d && d.getFullYear() === y && d.getMonth() === m) {
+      deliveryDays.add(d.getDate());
+    }
+  });
+
+  const first = new Date(y, m, 1).getDay();
+  const total = new Date(y, m + 1, 0).getDate();
+
   let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
-  DAYS.forEach(d => { html += `<div style="text-align:center;font-size:9px;font-weight:700;color:var(--text-3);padding:3px 0;text-transform:uppercase;">${d}</div>`; });
-  for (let i = 0; i < first; i++) html += '<div></div>';
+  DAYS.forEach(d => {
+    html += `<div style="text-align:center;font-size:9px;font-weight:700;color:var(--text-3);padding:2px 0 4px;text-transform:uppercase;">${d}</div>`;
+  });
+  for (let i = 0; i < first; i++) html += '<div style="height:38px;"></div>';
   for (let d = 1; d <= total; d++) {
     const isToday = d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
-    html += `<div style="text-align:center;font-size:11px;padding:5px 2px;border-radius:4px;${isToday ? 'background:var(--accent);color:#fff;font-weight:700;' : 'color:var(--text-2);'}">${d}</div>`;
+    const hasDel = deliveryDays.has(d);
+    const dayBg   = isToday ? 'background:var(--accent);' : '';
+    const dayColor = isToday ? 'color:#fff;font-weight:700;' : 'color:var(--text-2);';
+    const dotHtml  = hasDel
+      ? `<div style="display:flex;justify-content:center;margin-top:4px;"><div title="Delivery" style="width:8px;height:8px;border-radius:50%;background:#E87722;"></div></div>`
+      : '';
+    html += `<div style="height:38px;border-radius:5px;padding:3px 2px 2px;${dayBg}${hasDel && !isToday ? 'background:#FFF4EC;' : ''}">
+      <div style="text-align:center;font-size:11px;${dayColor}">${d}</div>
+      ${dotHtml}
+    </div>`;
   }
   html += '</div>';
   document.getElementById('cal-grid').innerHTML = html;
@@ -677,24 +717,22 @@ function renderContainers() {
 // ── BUILDING MATRIX ──────────────────────────────────────────────
 function renderBuilding() {
   const gridEl = document.getElementById('bldg-grid');
-  const sideEl = document.getElementById('bldg-sidebar');
   if (!UNITS.length) {
-    gridEl.innerHTML = '<div class="empty-state"><div class="big">&#127959;</div>Run update_dashboard.py to load unit data</div>';
-    sideEl.innerHTML = '';
+    gridEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3)">Run update_dashboard.py to load unit data</div>';
     return;
   }
 
-  // Unit status: worst (least progressed) among its containers
+  function ctnStatus(num) {
+    const c = CONTAINERS.find(x => x.num === num);
+    return c ? normStatus(c.status) : 'PROJ';
+  }
   function unitStatus(u) {
-    if (!u.inScope) return null;
-    if (!u.ctns || !u.ctns.length) return 'PROJ';
-    return u.ctns.map(n => {
-      const c = CONTAINERS.find(x => x.num === n);
-      return c ? normStatus(c.status) : 'PROJ';
-    }).reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
+    if (!u.inScope || !u.ctns || !u.ctns.length) return 'PROJ';
+    return u.ctns.map(n => ctnStatus(n))
+      .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
   }
 
-  // Group units by floor
+  // Group by floor, high→low
   const byFloor = {};
   UNITS.forEach(u => {
     if (!byFloor[u.floor]) byFloor[u.floor] = [];
@@ -702,60 +740,146 @@ function renderBuilding() {
   });
   const floors = Object.keys(byFloor).map(Number).sort((a,b) => b-a);
 
-  // All unit suffixes (unit # % 100) to form columns
-  const allSuffixes = [...new Set(UNITS.map(u => u.unit % 100))].sort((a,b) => a-b);
-
-  // Build matrix table
-  let html = '<table class="bldg-matrix"><thead><tr><th style="text-align:left">Fl.</th>';
-  allSuffixes.forEach(n => { html += `<th>${String(n).padStart(2,'0')}</th>`; });
-  html += '</tr></thead><tbody>';
-
+  let html = '';
   floors.forEach(floor => {
-    const units = byFloor[floor];
-    html += `<tr><td class="floor-lbl">${floor}</td>`;
-    allSuffixes.forEach(pos => {
-      const u = units.find(x => x.unit % 100 === pos);
-      if (!u) {
-        html += '<td style="background:var(--bg);border:1px solid var(--border)"></td>';
-        return;
+    const scopedUnits = byFloor[floor].filter(u => u.inScope).sort((a,b) => a.unit - b.unit);
+    if (!scopedUnits.length) return;
+
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);">Floor ${floor}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">`;
+
+    scopedUnits.forEach(u => {
+      const us = unitStatus(u);
+      const uColor = STATUS_COLORS[us] || '#A8D4CE';
+      const uDot   = STATUS_DOTS[us]   || '#D4890A';
+
+      let compHtml = '';
+      if (u.components && u.components.length) {
+        u.components.forEach(comp => {
+          const cs = ctnStatus(comp.ctn);
+          const cc = STATUS_COLORS[cs] || '#A8D4CE';
+          compHtml += `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:9px;font-weight:700;background:${cc};color:#fff;padding:2px 6px;border-radius:3px;flex-shrink:0;min-width:20px;text-align:center;">${comp.ctn}</span>
+            <span style="font-size:11px;color:var(--text-2);">${comp.name}</span>
+          </div>`;
+        });
+      } else {
+        compHtml = '<div style="font-size:10px;color:var(--text-3);padding:4px 0;">No areas assigned</div>';
       }
-      if (!u.inScope) {
-        html += `<td>
-          <div class="mcell" style="background:var(--scope-bg);opacity:.55;">
-            <div class="mcell-id" style="color:var(--text-3)">${u.unit}</div>
-            <div class="mcell-bar" style="background:var(--border)"></div>
+
+      html += `<div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid ${uColor};border-radius:var(--radius-lg);padding:12px;width:175px;flex-shrink:0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:6px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);">${u.unit}</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${u.type || '—'}</div>
           </div>
-        </td>`;
-        return;
-      }
-      const s = unitStatus(u);
-      const sc = STATUS_COLORS[s] || '#D8EDEA';
-      const ctnList = u.ctns && u.ctns.length ? u.ctns.join(', ') : '—';
-      const tip = `${u.unit} · ${u.type||'—'} · CTN ${ctnList} · ${STATUS_LABELS[s]||s}`;
-      html += `<td style="background:${sc}22">
-        <div class="mcell">
-          <div class="mcell-id" style="background:${sc}18">${u.unit}</div>
-          <div class="mcell-bar" style="background:${sc}"></div>
-          <div class="mcell-tip">${tip}</div>
+          <span style="font-size:9px;font-weight:600;color:${uDot};background:${uColor}33;padding:2px 6px;border-radius:4px;white-space:nowrap;">${STATUS_LABELS[us]||us}</span>
         </div>
-      </td>`;
+        ${compHtml}
+      </div>`;
     });
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  gridEl.innerHTML = html;
 
-  // Sidebar: floor progress
-  function unitStatusForFloor(u) { return unitStatus(u); }
-  let shtml = `<table style="width:100%;border-collapse:collapse;font-size:10px;">
-    <thead><tr>
-      <th style="text-align:left;padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Fl.</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Units</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Del</th>
-      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">%</th>
-    </tr></thead><tbody>`;
-  floors.forEach(floor => {
-    const inScopeUnits = byFloor[floor].filter(u => u.inScope);
-    const total = inScopeUnits.length;
-    const del = inScopeUnits.filter(u => unitStatusForFloor(u) === 'DEL').length;
-    const pct = total > 0 ? Math.ro
+    html += '</div></div>';
+  });
+
+  gridEl.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--text-3)">No in-scope units found.</div>';
+}
+
+// ── UNIT DROPDOWN ────────────────────────────────────────────────
+function renderUnitDropdown() {
+  const sel = document.getElementById('f-unit');
+  if (!UNITS.length) return;
+  const byFloor = {};
+  UNITS.filter(u => u.inScope).forEach(u => {
+    if (!byFloor[u.floor]) byFloor[u.floor] = [];
+    byFloor[u.floor].push(u);
+  });
+  const floors = Object.keys(byFloor).map(Number).sort((a,b) => a-b);
+  sel.innerHTML = '<option value="">— Select unit —</option>' + floors.map(f =>
+    `<optgroup label="Floor ${f}">` +
+    byFloor[f].map(u => `<option value="${u.unit}">${u.unit}${u.type ? ' · ' + u.type : ''}</option>`).join('') +
+    '</optgroup>'
+  ).join('');
+}
+
+// ── DAMAGE / OPEN ITEMS ──────────────────────────────────────────
+const KEY = 'omm_damage_items_v1';
+function loadItems() { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch(e) { return []; } }
+function saveItems(items) { localStorage.setItem(KEY, JSON.stringify(items)); }
+
+function renderItems() {
+  const items = loadItems();
+  const open   = items.filter(i => i.status === 'Open');
+  const closed = items.filter(i => i.status === 'Closed');
+  document.getElementById('dmg-count-label').textContent = items.length + ' item' + (items.length !== 1 ? 's' : '') + ' logged';
+  document.getElementById('open-count').textContent   = open.length;
+  document.getElementById('closed-count').textContent = closed.length;
+  document.getElementById('empty-state').style.display       = items.length === 0 ? 'block' : 'none';
+  document.getElementById('dmg-open-group').style.display    = open.length > 0   ? 'block' : 'none';
+  document.getElementById('dmg-closed-group').style.display  = closed.length > 0 ? 'block' : 'none';
+  function row(item) {
+    const cl = item.status === 'Closed';
+    return `<tr>
+      <td style="font-weight:600">${item.unit}</td><td>${item.date}</td>
+      <td class="mono">${item.code||'&#8212;'}</td><td>${item.component||'&#8212;'}</td>
+      <td>${item.issue}</td><td>${item.photo||'&#8212;'}</td><td>${item.comment||'&#8212;'}</td>
+      <td><span class="bdg ${cl?'b-closed':'b-open'}">${item.status}</span></td>
+      <td>
+        ${!cl ? `<button onclick="closeItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:#1A5C2A">Close</button>` : ''}
+        <button onclick="deleteItem(${item.id})" style="font-size:10px;padding:2px 8px;border:1px solid var(--border-strong);border-radius:4px;background:none;cursor:pointer;font-family:inherit;color:var(--text-3);margin-left:4px">Remove</button>
+      </td>
+    </tr>`;
+  }
+  document.getElementById('open-tbody').innerHTML   = open.map(row).join('');
+  document.getElementById('closed-tbody').innerHTML = closed.map(row).join('');
+}
+
+function submitItem() {
+  const unit  = document.getElementById('f-unit').value;
+  const issue = document.getElementById('f-issue').value.trim();
+  if (!unit)  { showMsg('Please select a unit.', true); return; }
+  if (!issue) { showMsg('Please describe the issue.', true); return; }
+  const items = loadItems();
+  items.unshift({ id:Date.now(), unit, date:today(), dateISO:todayISO(),
+    code:      document.getElementById('f-code').value.trim(),
+    component: document.getElementById('f-component').value.trim(),
+    issue, photo:   document.getElementById('f-photo').value.trim(),
+    comment:   document.getElementById('f-comment').value.trim(), status:'Open' });
+  saveItems(items); renderItems();
+  ['f-unit','f-code','f-component','f-issue','f-photo','f-comment'].forEach(id => { document.getElementById(id).value = ''; });
+  showMsg('Item logged.', false);
+}
+function showMsg(t, e) {
+  const m = document.getElementById('form-msg');
+  m.textContent = t; m.className = 'form-msg' + (e ? ' err' : ''); m.style.display = 'inline';
+  setTimeout(() => { m.style.display = 'none'; }, 3200);
+}
+function closeItem(id) {
+  const items = loadItems(); const i = items.find(x => x.id === id);
+  if (i) { i.status = 'Closed'; saveItems(items); renderItems(); }
+}
+function deleteItem(id) {
+  if (!confirm('Remove permanently?')) return;
+  saveItems(loadItems().filter(x => x.id !== id)); renderItems();
+}
+function exportCSV() {
+  const items = loadItems();
+  if (!items.length) { alert('No items to export.'); return; }
+  const hdr = ['Unit','Date','Code','Component','Issue','Photo','Comment','Status'];
+  const rows = items.map(i => [i.unit,i.date,i.code||'',i.component||'',i.issue,i.photo||'',i.comment||'',i.status]
+    .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+  const blob = new Blob([[hdr.join(','), ...rows].join('\r\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'OMM_Damage_' + todayISO() + '.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+renderContainers();
+renderBuilding();
+renderUnitDropdown();
+renderItems();
+</script>
+</body>
+</html>

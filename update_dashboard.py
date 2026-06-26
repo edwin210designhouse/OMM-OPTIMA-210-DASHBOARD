@@ -16,15 +16,17 @@ from datetime import datetime
 import openpyxl
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
-SITE_DIR   = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
-EXCEL_FILE = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
-HTML_FILE  = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")
+SITE_DIR       = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
+EXCEL_FILE     = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
+TEMPLATE_FILE  = os.path.join(SITE_DIR, "OMM_Optima_Template.html")   # design lives here — never auto-edited
+HTML_FILE      = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")  # output — always regenerated from template
 
 AUTO_GIT = True   # Set to False to skip the git push
 
 SH_CTN  = "OMM_Overall Container Matrix"
 SH_UNIT = "OMM_Unit Matrix"
 
+GITHUB_TOKEN  = ""   # ← paste your GitHub Personal Access Token here (between the quotes)
 GITHUB_REMOTE = "https://github.com/edwin210designhouse/OMM-OPTIMA-210-DASHBOARD.git"
 # ────────────────────────────────────────────────────────────────────────────
 
@@ -100,6 +102,12 @@ def read_units(ws):
         })
     return units
 
+def remote_url():
+    """Build the push URL — embeds token if provided."""
+    if GITHUB_TOKEN:
+        return GITHUB_REMOTE.replace("https://", f"https://{GITHUB_TOKEN}@")
+    return GITHUB_REMOTE
+
 def git_setup():
     """Initialize or repair git repo inside the OneDrive folder."""
     def r(cmd):
@@ -109,7 +117,7 @@ def git_setup():
     r(["git", "config", "user.name", "Edwin"])
     r(["git", "branch", "-M", "main"])
     subprocess.run(["git", "remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
-    r(["git", "remote", "add", "origin", GITHUB_REMOTE])
+    r(["git", "remote", "add", "origin", remote_url()])
 
 def git_push(commit_msg):
     """Add, commit, and push. Auto-repairs git if it's broken."""
@@ -129,7 +137,7 @@ def git_push(commit_msg):
     if "nothing to commit" in (rc.stdout + rc.stderr):
         r(["git", "commit", "--allow-empty", "-m", commit_msg])
 
-    rp = r(["git", "push", "-u", "origin", "main", "--force"])
+    rp = r(["git", "push", remote_url(), "main", "--force"])
     if rp.returncode == 0:
         return True, "pushed"
 
@@ -138,7 +146,7 @@ def git_push(commit_msg):
     git_setup()
     r(["git", "add", "-A"])
     r(["git", "commit", "--allow-empty", "-m", commit_msg])
-    rp2 = r(["git", "push", "-u", "origin", "main", "--force"])
+    rp2 = r(["git", "push", remote_url(), "main", "--force"])
     if rp2.returncode == 0:
         return True, "pushed (after reinit)"
     return False, rp2.stderr.strip()
@@ -193,24 +201,23 @@ def main():
         "// DATA_END"
     )
 
-    # ── Read HTML, strip any corruption, inject data ────────────
+    # ── Read TEMPLATE, inject data, write to dashboard ──────────
     print(f"\nUpdating dashboard HTML...")
-    if not os.path.exists(HTML_FILE):
-        print(f"\nERROR: HTML file not found at:\n  {HTML_FILE}")
+    if not os.path.exists(TEMPLATE_FILE):
+        print(f"\nERROR: Template file not found at:\n  {TEMPLATE_FILE}")
+        print("Make sure OMM_Optima_Template.html is in the folder.")
         input("\nPress Enter to close...")
         return
 
     try:
-        with open(HTML_FILE, "rb") as f:
-            raw = f.read().replace(b'\x00', b'')  # strip null bytes
-        # Strip any junk before <!DOCTYPE html>
+        with open(TEMPLATE_FILE, "rb") as f:
+            raw = f.read().replace(b'\x00', b'')
         idx = raw.find(b'<!DOCTYPE html>')
         if idx > 0:
-            print(f"  Stripped {idx} bytes of junk before DOCTYPE.")
             raw = raw[idx:]
         html = raw.decode("utf-8", errors="replace")
     except Exception as e:
-        print(f"\nERROR reading HTML: {e}")
+        print(f"\nERROR reading template: {e}")
         input("\nPress Enter to close...")
         return
 
@@ -230,7 +237,9 @@ def main():
     try:
         with open(HTML_FILE, "w", encoding="utf-8") as f:
             f.write(new_html)
-        print(f"  HTML updated successfully.")
+        opens  = new_html.count('<script')
+        closes = new_html.count('</script>')
+        print(f"  HTML updated ({opens} open / {closes} close script tags).")
     except Exception as e:
         print(f"\nERROR writing HTML: {e}")
         input("\nPress Enter to close...")
