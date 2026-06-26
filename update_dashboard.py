@@ -16,14 +16,41 @@ from datetime import datetime
 import openpyxl
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
-SITE_DIR   = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
-EXCEL_FILE = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
-HTML_FILE  = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")
+SITE_DIR      = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
+EXCEL_FILE    = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
+ONEDRIVE_HTML = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")
+
+# Work files live in C:\Temp — completely outside OneDrive, immune to sync corruption
+TEMP_DIR      = r"C:\Temp\omm-optima"
+HTML_FILE     = os.path.join(TEMP_DIR, "OMM_Optima_Dashboard.html")
+TEMPLATE_FILE = os.path.join(TEMP_DIR, "OMM_Optima_Template.html")
+
 AUTO_GIT   = True   # Set to False to skip the git push
 
 SH_CTN  = "OMM_Overall Container Matrix"
 SH_UNIT = "OMM_Unit Matrix"
 # ────────────────────────────────────────────────────────────────────────────
+
+def ensure_template():
+    """
+    Ensure a clean HTML template exists in C:\\Temp.
+    On first run, copies from OneDrive. If OneDrive copy is corrupted, errors out clearly.
+    """
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    if os.path.exists(TEMPLATE_FILE):
+        return True
+    # Try to copy from OneDrive
+    if os.path.exists(ONEDRIVE_HTML):
+        with open(ONEDRIVE_HTML, 'rb') as f:
+            raw = f.read().replace(b'\x00', b'')
+        if b'DATA_START' in raw and b'</html>' in raw:
+            with open(TEMPLATE_FILE, 'wb') as f:
+                f.write(raw)
+            print("  Template saved to C:\\Temp.")
+            return True
+    print("\nERROR: Could not find a valid HTML template.")
+    print("Please ensure OMM_Optima_Dashboard.html is in the OMM_Optima Website folder.")
+    return False
 
 def fmt_date(val):
     """Format a datetime or string value for display (e.g. 'Aug 5, 2026')."""
@@ -104,64 +131,72 @@ def read_units(ws):
 
 GITHUB_REMOTE = "https://github.com/edwin210designhouse/OMM-OPTIMA-210-DASHBOARD.git"
 
-def git_reinit():
-    """Wipe .git and start fresh — fixes any corruption."""
-    import shutil
-    git_dir = os.path.join(SITE_DIR, ".git")
-    try:
-        shutil.rmtree(git_dir)
-    except Exception:
-        pass
-    cmds = [
-        ["git", "init"],
-        ["git", "config", "user.email", "flores.edwin9271@gmail.com"],
-        ["git", "config", "user.name", "Edwin"],
-        ["git", "branch", "-M", "main"],
-        ["git", "remote", "add", "origin", GITHUB_REMOTE],
-    ]
-    for cmd in cmds:
-        subprocess.run(cmd, cwd=SITE_DIR, capture_output=True)
+# Store .git OUTSIDE OneDrive so it can never be corrupted by sync
+GIT_DIR = r"C:\Temp\omm-optima-git"
+
+def git_env():
+    """Git env vars: .git and work tree both in C:\\Temp, never touched by OneDrive."""
+    e = os.environ.copy()
+    e["GIT_DIR"] = GIT_DIR
+    e["GIT_WORK_TREE"] = TEMP_DIR  # push from C:\Temp, not OneDrive
+    return e
+
+def git_setup():
+    """Initialize git repo in C:\\Temp if not already done."""
+    os.makedirs(GIT_DIR, exist_ok=True)
+    env = git_env()
+    def r(cmd):
+        return subprocess.run(cmd, env=env, cwd=SITE_DIR, capture_output=True, text=True)
+    r(["git", "init"])
+    r(["git", "config", "user.email", "flores.edwin9271@gmail.com"])
+    r(["git", "config", "user.name", "Edwin"])
+    # Set remote (ignore error if already exists)
+    subprocess.run(["git", "remote", "remove", "origin"], env=env, cwd=SITE_DIR, capture_output=True)
+    r(["git", "remote", "add", "origin", GITHUB_REMOTE])
 
 def git_push(commit_msg):
-    """Push to GitHub. Auto-heals git corruption if needed."""
-    def run(cmd):
-        return subprocess.run(cmd, cwd=SITE_DIR, capture_output=True, text=True)
+    """Push to GitHub using git stored in C:\\Temp (immune to OneDrive corruption)."""
+    if not os.path.exists(GIT_DIR):
+        git_setup()
 
-    for attempt in range(2):
-        # Remove stale locks
-        for lock_name in ["index.lock", "MERGE_HEAD"]:
-            lock = os.path.join(SITE_DIR, ".git", lock_name)
-            try:
-                if os.path.exists(lock):
-                    os.remove(lock)
-            except Exception:
-                pass
+    env = git_env()
+    def r(cmd):
+        return subprocess.run(cmd, env=env, cwd=SITE_DIR, capture_output=True, text=True)
 
-        r_add    = run(["git", "add", "-A"])
-        r_commit = run(["git", "commit", "-m", commit_msg])
-        r_push   = run(["git", "push"])
+    r(["git", "add", "-A"])
+    rc = r(["git", "commit", "-m", commit_msg])
+    if "nothing to commit" in (rc.stdout + rc.stderr):
+        # Force a commit by touching the timestamp
+        r(["git", "commit", "--allow-empty", "-m", commit_msg])
 
-        combined = r_push.stdout + r_push.stderr
-        if r_push.returncode == 0:
-            return True, "pushed"
-        if "nothing to commit" in (r_commit.stdout + r_commit.stderr):
-            return True, "nothing new"
-        if attempt == 0:
-            print("  Git issue detected — auto-fixing and retrying...")
-            git_reinit()
-            run(["git", "add", "-A"])
-            run(["git", "commit", "-m", commit_msg])
-            r_push2 = run(["git", "push", "-u", "origin", "main", "--force"])
-            if r_push2.returncode == 0:
-                return True, "pushed (after reinit)"
-            return False, r_push2.stderr.strip()
+    rp = r(["git", "push", "-u", "origin", "main", "--force"])
+    if rp.returncode == 0:
+        return True, "pushed"
 
-    return False, "unknown error"
+    # Push failed — re-init and retry once
+    print("  Push failed, re-initializing git...")
+    import shutil
+    try:
+        shutil.rmtree(GIT_DIR)
+    except Exception:
+        pass
+    git_setup()
+    r(["git", "add", "-A"])
+    r(["git", "commit", "--allow-empty", "-m", commit_msg])
+    rp2 = r(["git", "push", "-u", "origin", "main", "--force"])
+    if rp2.returncode == 0:
+        return True, "pushed (after reinit)"
+    return False, rp2.stderr.strip()
 
 def main():
     print("=" * 54)
     print("  OMM Optima Dashboard -- Auto-update")
     print("=" * 54)
+
+    # ── Ensure template exists in C:\Temp ──────────────────────
+    if not ensure_template():
+        input("\nPress Enter to close...")
+        return
 
     # ── Read Excel ──────────────────────────────────────────────
     print(f"\nReading: {os.path.basename(EXCEL_FILE)}")
@@ -208,21 +243,19 @@ def main():
         "// DATA_END"
     )
 
-    # ── Update HTML ─────────────────────────────────────────────
-    print(f"\nUpdating: {os.path.basename(HTML_FILE)}")
-    if not os.path.exists(HTML_FILE):
-        print(f"\nERROR: HTML file not found at:\n  {HTML_FILE}")
+    # ── Update HTML (from C:\Temp template — immune to OneDrive) ──
+    print(f"\nUpdating dashboard HTML...")
+    if not os.path.exists(TEMPLATE_FILE):
+        print(f"\nERROR: Template not found at:\n  {TEMPLATE_FILE}")
         input("\nPress Enter to close...")
         return
 
     try:
-        with open(HTML_FILE, "rb") as f:
-            raw = f.read()
-        # Strip null bytes that OneDrive sync can inject
-        raw = raw.replace(b'\x00', b'')
+        with open(TEMPLATE_FILE, "rb") as f:
+            raw = f.read().replace(b'\x00', b'')
         html = raw.decode("utf-8")
     except Exception as e:
-        print(f"\nERROR reading HTML: {e}")
+        print(f"\nERROR reading template: {e}")
         input("\nPress Enter to close...")
         return
 
@@ -234,13 +267,16 @@ def main():
     )
 
     if count == 0:
-        print("\nERROR: Data markers not found in the HTML file.")
-        print("The HTML must contain the lines:  // DATA_START  and  // DATA_END")
+        print("\nERROR: Data markers not found in template.")
         input("\nPress Enter to close...")
         return
 
     try:
+        # Write to C:\Temp (OneDrive never touches this)
         with open(HTML_FILE, "w", encoding="utf-8") as f:
+            f.write(new_html)
+        # Also copy to OneDrive folder so user can see it locally
+        with open(ONEDRIVE_HTML, "w", encoding="utf-8") as f:
             f.write(new_html)
         print(f"  HTML updated successfully.")
     except Exception as e:
