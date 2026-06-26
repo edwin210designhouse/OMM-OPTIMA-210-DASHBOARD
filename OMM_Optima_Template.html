@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMM · Optima Mountain Modern — Container Dashboard</title>
+<style>
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --border: rgba(0,0,0,0.10);
+  --border-strong: rgba(0,0,0,0.18);
+  --text: #1A1A18;
+  --text-2: #5C5C58;
+  --text-3: #9A9A94;
+  --accent: #1A3A2A;
+  --del-bg:  #E3F0EE;  --del-text:  #0D5040;
+  --rail-bg: #FAF0E8;  --rail-text: #703010;
+  --port-bg: #EDEBFC;  --port-text: #3A2A8A;
+  --enr-bg:  #E6EEF8;  --enr-text:  #1A3A70;
+  --ldd-bg:  #E8F2EB;  --ldd-text:  #1A5C2A;
+  --ldg-bg:  #F0EFE8;  --ldg-text:  #444440;
+  --proj-bg: #FEF5E7;  --proj-text: #7A4A00;
+  --open-bg: #FEF5E7;  --open-text: #7A4A00;
+  --crit-bg: #FEECEC;  --crit-text: #7A1A1A;
+  --closed-bg: #E8F2EB; --closed-text: #1A5C2A;
+  --scope-bg: #F4F3EF;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); font-size: 13px; line-height: 1.5; }
+.shell { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+
+/* Topbar */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.topbar-left h1 { font-size: 20px; font-weight: 500; letter-spacing: -.3px; }
+.topbar-left .sub { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.topbar-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.topbar-right img { height: 44px; width: auto; display: block; }
+.date-pill { font-size: 13px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 99px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); padding: 3px; border-radius: var(--radius); width: fit-content; }
+.tab { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: none; border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; transition: background .12s, color .12s; }
+.tab:hover { background: var(--bg); color: var(--text); }
+.tab.on { background: var(--accent); color: #fff; }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* Badges */
+.bdg { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+.b-DEL  { background: var(--del-bg);   color: var(--del-text);  }
+.b-RAIL { background: var(--rail-bg);  color: var(--rail-text); }
+.b-PORT { background: var(--port-bg);  color: var(--port-text); }
+.b-ENR  { background: var(--enr-bg);   color: var(--enr-text);  }
+.b-LDD  { background: var(--ldd-bg);   color: var(--ldd-text);  }
+.b-LDG  { background: var(--ldg-bg);   color: var(--ldg-text);  }
+.b-PROJ { background: var(--proj-bg);  color: var(--proj-text); }
+.b-open   { background: var(--open-bg);   color: var(--open-text);   }
+.b-crit   { background: var(--crit-bg);   color: var(--crit-text);   }
+.b-closed { background: var(--closed-bg); color: var(--closed-text); }
+
+/* Metric cards */
+.mc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+.mc .lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.mc .val { font-size: 22px; font-weight: 600; line-height: 1; }
+.mc .vsub { font-size: 10px; color: var(--text-3); margin-top: 3px; }
+
+/* Status dots */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.d-DEL  { background: #1A5C47; }
+.d-RAIL { background: #AA4010; }
+.d-PORT { background: #5A4AAA; }
+.d-ENR  { background: #2A5AAA; }
+.d-LDD  { background: #2A7A3A; }
+.d-LDG  { background: #888880; }
+.d-PROJ { background: #D4890A; }
+.d-scope { background: #CCCCCC; }
+
+/* Legend */
+.leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 10px; color: var(--text-2); margin-bottom: 10px; align-items: center; }
+.leg-i { display: flex; align-items: center; gap: 5px; }
+
+/* Tables */
+.tw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; overflow-x: auto; background: var(--surface); margin-bottom: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { text-align: left; padding: 8px 10px; color: var(--text-3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
+.mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; }
+
+/* Route pipeline */
+.route-pipeline { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; overflow-x: auto; }
+.rp-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 64px; }
+.rp-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 4px; }
+.rp-name { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); text-align: center; }
+.rp-val  { font-size: 10px; color: var(--text-2); text-align: center; margin-top: 4px; }
+.rp-line { flex: 1; height: 2px; background: var(--border); align-self: center; margin-bottom: 20px; min-width: 10px; }
+
+/* Building matrix */
+.bldg-matrix { width: 100%; border-collapse: collapse; font-size: 10px; }
+.bldg-matrix th { font-size: 9px; font-weight: 600; color: var(--text-3); text-align: center; padding: 3px 4px; background: var(--bg); border: 1px solid var(--border); white-space: nowrap; }
+.bldg-matrix td { border: 1px solid var(--border); padding: 0; text-align: center; }
+.bldg-matrix .floor-lbl { font-size: 9px; font-weight: 700; color: var(--text-2); background: var(--bg); padding: 3px 8px; white-space: nowrap; }
+.mcell { display: flex; flex-direction: column; width: 100%; cursor: default; position: relative; }
+.mcell-id { font-size: 8px; font-weight: 600; color: var(--text-2); padding: 3px 2px 1px; text-align: center; }
+.mcell-bar { height: 6px; width: 100%; }
+.mcell:hover .mcell-tip { display: block; }
+.mcell-tip { display: none; position: absolute; z-index: 99; top: 100%; left: 50%; transform: translateX(-50%); background: #222; color: #fff; font-size: 9px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; pointer-events: none; margin-top: 2px; }
+
+/* Damage form */
+.dmg-group { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+.dmg-group.open  { border-left: 3px solid #CC3030; }
+.dmg-group.closed { border-left: 3px solid #2A7A3A; }
+.dmg-group-hdr { padding: 6px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--bg); border-bottom: 1px solid var(--border); color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 8px; }
+.form-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.form-card .form-sub { font-size: 11px; color: var(--text-2); margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-grid.single { grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
+.field input, .field select, .field textarea { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--bg); outline: none; transition: border-color .12s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); background: #fff; }
+.field textarea { resize: vertical; min-height: 70px; }
+.field .date-fixed { font-size: 12px; color: var(--text-2); padding: 8px 10px; background: var(--scope-bg); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'SF Mono', monospace; }
+.form-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.btn-submit { background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 9px 18px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-submit:hover { opacity: .88; }
+.form-msg { font-size: 11px; color: var(--ldd-text); font-weight: 500; display: none; }
+.form-msg.err { color: var(--crit-text); }
+.export-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.export-bar .count { font-size: 11px; color: var(--text-2); }
+.btn-export { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 14px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.btn-export:hover { background: var(--bg); }
+.btn-export svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.empty-state { text-align: center; padding: 32px; color: var(--text-3); font-size: 12px; }
+.empty-state .big { font-size: 28px; margin-bottom: 8px; }
+
+@media (max-width: 768px) {
+  /* Shell */
+  .shell { padding: 12px 10px 40px; }
+
+  /* Topbar — stack vertically, center everything */
+  .topbar { flex-direction: column !important; align-items: center !important; gap: 0 !important; }
+  .topbar > div:first-child { padding-bottom: 14px !important; }
+  .topbar > div:last-child { flex-direction: column !important; align-items: center !important; gap: 12px !important; width: 100%; }
+
+  /* Hide left and right logos on mobile */
+  .logo-left { display: none !important; }
+  .logo-right { display: none !important; }
+
+  /* Title block — center */
+  .topbar-left { flex-direction: column !important; align-items: center !important; text-align: center; gap: 4px !important; width: 100%; }
+  .topbar-left h1 { font-size: 17px !important; }
+  .topbar-left .sub { font-size: 11px !important; }
+
+  /* Date + week — side by side, centered on mobile */
+  .date-block { flex-direction: row !important; align-items: center !important; justify-content: center !important; gap: 8px !important; }
+  #today-week { padding-right: 0 !important; font-size: 12px !important; }
+  .date-pill { font-size: 12px !important; }
+
+  /* Tabs — full width scrollable */
+  .tabs { width: 100%; overflow-x: auto; }
+  .tab { padding: 7px 12px; white-space: nowrap; font-size: 11px; }
+
+  /* Metric cards — stack vertically */
+  #ctn > div[style*="display:flex"] { flex-direction: column !important; }
+  #ctn > div > div[style*="grid"] { grid-template-columns: 1fr 1fr !important; width: 100%; }
+
+  /* Pipeline — horizontal scroll */
+  .route-pipeline { overflow-x: auto; gap: 4px; padding: 10px; }
+  .rp-step { min-width: 56px; }
+  .rp-name { font-size: 8px; }
+
+  /* Tables — horizontal scroll */
+  .tw { overflow-x: auto; }
+  table { font-size: 10px; min-width: 700px; }
+  th, td { padding: 6px 7px; white-space: nowrap; }
+
+  /* Building matrix */
+  #bldg .tw { overflow-x: auto; }
+  #bldg > div[style*="display:flex"] { flex-direction: column !important; }
+  #bldg-sidebar { min-width: unset !important; width: 100%; }
+
+  /* Damage form */
+  .form-grid { grid-template-columns: 1fr !important; }
+  .form-card { padding: 14px; }
+
+  /* Donut + next-up — stack */
+  #ctn > div > div[style*="flex:1"] { width: 100%; }
+  canvas#status-chart { width: 130px !important; height: 130px !important; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOPBAR -->
+<div class="topbar" style="display:flex;flex-direction:column;align-items:stretch;">
+  <!-- Row 1: center logo -->
+  <div style="display:flex;justify-content:center;align-items:center;padding-bottom:40px;">
+    <img class="logo-center" src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:26px;width:auto;">
+  </div>
+  <!-- Row 2: left logo + title | date + right logo -->
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="topbar-left" style="display:flex;align-items:center;gap:16px;">
+      <img class="logo-left" src="210 Black.PNG" alt="210 Design House" style="height:71px;width:auto;">
+      <div>
+        <h1>OMM · Optima McDowell Mountain</h1>
+        <div class="sub" id="page-sub">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="date-block" style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+        <span class="date-pill" id="today-pill"></span>
+        <span id="today-week" style="font-size:13px;font-weight:500;color:var(--text-2);padding-right:10px;"></span>
+      </div>
+      <img class="logo-right" src="black sketch.png" alt="Sketch" style="height:89px;width:auto;">
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="sw('ctn',this)">Container schedule</button>
+  <button class="tab" onclick="sw('bldg',this)">Building matrix</button>
+  <button class="tab" onclick="sw('dmg',this)">Damage / open items</button>
+</div>
+
+<!-- ===== CONTAINER SCHEDULE ===== -->
+<div id="ctn" class="panel on">
+
+  <!-- Top row: metrics + transit | donut | next up -->
+  <!-- Single row: Metrics | Transit | Donut | Next Up + Calendar -->
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
+
+    <!-- Total containers -->
+    <div class="mc" style="margin:0;flex-shrink:0;">
+      <div class="lbl">Total containers</div>
+      <div class="val" id="m-total">—</div>
+      <div class="vsub" id="m-total-sub">—</div>
+    </div>
+
+    <!-- Units in scope -->
+    <div class="mc" style="margin:0;flex-shrink:0;">
+      <div class="lbl">Units in scope</div>
+      <div class="val" id="m-units">—</div>
+      <div class="vsub" id="m-units-sub">—</div>
+    </div>
+
+    <!-- Transit reference -->
+    <div class="mc" style="margin:0;flex-shrink:0;padding:12px 16px;">
+      <div class="lbl" style="margin-bottom:8px;">Transit reference</div>
+      <div id="transit-perf-table"></div>
+    </div>
+
+    <!-- Donut chart -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:10px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;">Container status</div>
+      <canvas id="status-chart" width="160" height="160"></canvas>
+      <div id="donut-legend" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:0 4px;"></div>
+    </div>
+
+    <!-- Next up + Calendar stacked -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-width:0;">
+
+      <!-- Next up -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;flex:1;display:flex;flex-direction:column;">
+        <div style="font-size:10px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Next up</div>
+        <div id="next-up-list" style="flex:1;"></div>
+      </div>
+
+      <!-- Calendar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <button onclick="calNav(-1)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text-2);font-family:inherit;">&#8249;</button>
+          <div id="cal-title" style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;"></div>
+          <button onclick="calNav(1)" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text-2);font-family:inherit;">&#8250;</button>
+        </div>
+        <div id="cal-grid"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Route pipeline -->
+  <div class="route-pipeline">
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#F0EFE8">🏭</div>
+      <div class="rp-name">Factory IT</div>
+      <div id="rp-LDG" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E8F0EB">📦</div>
+      <div class="rp-name">Loaded</div>
+      <div id="rp-LDD" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E6EEF8">🚢</div>
+      <div class="rp-name">Sea Freight</div>
+      <div id="rp-ENR" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#EDEBFC">⚓</div>
+      <div class="rp-name">Port (LAX)</div>
+      <div id="rp-PORT" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#FAF0E8">🚂</div>
+      <div class="rp-name">Phoenix RR</div>
+      <div id="rp-RAIL" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E8F2EB">🏗</div>
+      <div class="rp-name">Delivered</div>
+      <div id="rp-DEL" class="rp-val"></div>
+    </div>
+  </div>
+
+  <!-- Container table -->
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Status</th><th>Pickup Wk</th><th>Floors</th>
+        <th>Load Date</th><th>Ship Date</th>
+        <th>Vessel 1 (IT→COL)</th><th>Vessel 2 (COL→LAX)</th>
+        <th>ETA LAX</th><th>ETA Phoenix RR</th>
+        <th>Delivery Date</th><th>Install Date</th>
+      </tr></thead>
+      <tbody id="ctn-tbody">
+        <tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== BUILDING MATRIX ===== -->
+<div id="bldg" class="panel">
+  <div class="leg" style="margin-bottom:10px">
+    <span class="leg-i"><span class="dot d-DEL"></span> Delivered</span>
+    <span class="leg-i"><span class="dot d-RAIL"></span> Phoenix RR</span>
+    <span class="leg-i"><span class="dot d-PORT"></span> Port (LAX)</span>
+    <span class="leg-i"><span class="dot d-ENR"></span> Sea freight</span>
+    <span class="leg-i"><span class="dot d-LDD"></span> Loaded</span>
+    <span class="leg-i"><span class="dot d-LDG"></span> Loading</span>
+    <span class="leg-i"><span class="dot d-PROJ"></span> Projected</span>
+    <span class="leg-i"><span class="dot d-scope"></span> Not in scope</span>
+  </div>
+  <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div id="bldg-grid" style="flex:1;overflow-x:auto;"></div>
+    <div id="bldg-sidebar" style="flex-shrink:0;min-width:180px;"></div>
+  </div>
+</div>
+
+<!-- ===== DAMAGE / OPEN ITEMS ===== -->
+<div id="dmg" class="panel">
+  <div class="form-card">
+    <h3>Log a damage or open item</h3>
+    <p class="form-sub">Fill in what you found. Date is auto-stamped. Items persist in your browser and export to CSV.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Unit #</label>
+        <select id="f-unit"><option value="">— Select unit —</option></select>
+      </div>
+      <div class="field">
+        <label>Date reported</label>
+        <div class="date-fixed" id="today-display"></div>
+      </div>
+      <div class="field">
+        <label>Item code (if known)</label>
+        <input type="text" id="f-code" placeholder="e.g. OMMCF001234">
+      </div>
+      <div class="field">
+        <label>Component / cabinet</label>
+        <input type="text" id="f-component" placeholder="e.g. Island back panel">
+      </div>
+    </div>
+    <div class="form-grid single">
+      <div class="field">
+        <label>Issue description</label>
+        <textarea id="f-issue" placeholder="Describe what was found — damage type, location, severity…"></textarea>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Photo reference / filename</label>
+        <input type="text" id="f-photo" placeholder="e.g. 2006_island_damage.jpg">
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Comment / action taken</label>
+        <input type="text" id="f-comment" placeholder="e.g. Ordered replacement, touch-up applied…">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-submit" onclick="submitItem()">Log item</button>
+      <span class="form-msg" id="form-msg"></span>
+    </div>
+  </div>
+  <div style="margin-top:20px">
+    <div class="export-bar">
+      <span class="count" id="dmg-count-label">0 items logged</span>
+      <button class="btn-export" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export to CSV
+      </button>
+    </div>
+    <div id="dmg-open-group" class="dmg-group open" style="display:none">
+      <div class="dmg-group-hdr"><span style="color:#CC3030">&#9679;</span> Open items <span id="open-count" class="bdg b-open" style="margin-left:4px"></span></div>
+      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="open-tbody"></tbody></table>
+    </div>
+    <div id="dmg-closed-group" class="dmg-group closed" style="display:none;margin-top:8px">
+      <div class="dmg-group-hdr"><span style="color:#2A7A3A">&#9679;</span> Closed items <span id="closed-count" class="bdg b-closed" style="margin-left:4px"></span></div>
+      <table><thead><tr><th>Unit</th><th>Date</th><th>Code</th><th>Component</th><th>Issue</th><th>Photo</th><th>Comment</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="closed-tbody"></tbody></table>
+    </div>
+    <div id="empty-state" class="empty-state">
+      <div class="big">&#128203;</div>
+      No items logged yet. Use the form above to log the first damage or open item.
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+// DATA_START
+const CONTAINERS = [];
+const UNITS = [];
+const UPDATED = "—";
+// DATA_END
+
+// ── STATUS CONFIG ────────────────────────────────────────────────
+const STATUS_RANK   = { DEL:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
+const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#D8EDEA' };
+const STATUS_DOTS   = { DEL:'#1A5C47', RAIL:'#AA4010', PORT:'#5A4AAA', ENR:'#2A5AAA', LDD:'#2A7A3A', LDG:'#888880', PROJ:'#D4890A' };
+const STATUS_LABELS = { DEL:'Delivered', RAIL:'Phoenix RR', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Projected' };
+const STATUS_BADGE  = { DEL:'b-DEL', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
+const STATUS_ORDER  = ['DEL','RAIL','PORT','ENR','LDD','LDG','PROJ'];
+const PIPELINE_IDS  = ['DEL','RAIL','PORT','ENR','LDD','LDG'];
+
+const TRANSIT_REF = [
+  { label:'Leg 1: Italy → Colombia',  value:'~3 wks' },
+  { label:'Leg 2: Colombia → LAX',    value:'~3 wks' },
+  { label:'Port (LAX) processing',    value:'~1 wk'  },
+  { label:'Rail: LAX → Phoenix RR',   value:'~3 days'},
+  { label:'Total sea transit',         value:'~7–8 wks'},
+];
+
+function normStatus(code) {
+  const c = (code || 'PROJ').toString().trim().toUpperCase();
+  return STATUS_RANK[c] ? c : 'PROJ';
+}
+function today() { return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function sw(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  el.classList.add('on');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+if (document.getElementById('today-pill')) document.getElementById('today-pill').textContent = today();
+if (document.getElementById('today-display')) document.getElementById('today-display').textContent = today();
+const _d = new Date();
+const _wk = Math.ceil((((_d - new Date(_d.getFullYear(),0,1))/86400000) + new Date(_d.getFullYear(),0,1).getDay() + 1) / 7);
+if (document.getElementById('today-week')) document.getElementById('today-week').textContent = 'Week ' + _wk;
+if (UPDATED && UPDATED !== '—') {
+  document.getElementById('page-sub').textContent =
+    'Scottsdale, AZ · Container Dashboard · Updated ' + UPDATED;
+}
+
+// ── TRANSIT REFERENCE ─────────────────────────────────────────────
+(function() {
+  const el = document.getElementById('transit-perf-table');
+  let html = '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+  TRANSIT_REF.forEach(r => {
+    html += `<tr>
+      <td style="padding:3px 0;color:var(--text-2);border-bottom:1px solid var(--border)">${r.label}</td>
+      <td style="padding:3px 0;font-weight:600;text-align:right;border-bottom:1px solid var(--border)">${r.value}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  el.innerHTML = html;
+})();
+
+// ── METRICS + DONUT + PIPELINE ────────────────────────────────────
+(function() {
+  // Metric cards – static labels updated dynamically when data loads
+  const total = CONTAINERS.length;
+  const totalEl = document.getElementById('m-total');
+  if (totalEl) totalEl.textContent = total || '—';
+  if (total && document.getElementById('m-total-sub')) {
+    document.getElementById('m-total-sub').textContent =
+      (CONTAINERS[0].week || '') + ' – ' + (CONTAINERS[total-1].week || '');
+  }
+  const scopedUnits = UNITS.filter(u => u.inScope);
+  const inScope = scopedUnits.length;
+  if (document.getElementById('m-units')) document.getElementById('m-units').textContent = inScope || '—';
+  if (inScope && document.getElementById('m-units-sub')) {
+    const floors = scopedUnits.map(u => u.floor);
+    document.getElementById('m-units-sub').textContent =
+      'Floors ' + Math.min(...floors) + ' – ' + Math.max(...floors);
+  }
+
+  if (!total) return;
+
+  // Count by status
+  const counts = {};
+  CONTAINERS.forEach(c => {
+    const s = normStatus(c.status);
+    counts[s] = (counts[s]||0) + 1;
+  });
+
+  // Donut
+  const canvas = document.getElementById('status-chart');
+  const ctx = canvas.getContext('2d');
+  const cx = 80, cy = 80, r = 68, ir = 40;
+  let angle = -Math.PI / 2;
+  STATUS_ORDER.forEach(s => {
+    const n = counts[s] || 0;
+    if (!n) return;
+    const slice = (n / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.arc(cx, cy, ir, angle + slice, angle, true);
+    ctx.closePath();
+    ctx.fillStyle = STATUS_COLORS[s];
+    ctx.fill();
+    angle += slice;
+  });
+  ctx.fillStyle = '#1A1A18';
+  ctx.font = 'bold 20px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(total, cx, cy - 9);
+  ctx.font = '11px -apple-system,sans-serif';
+  ctx.fillStyle = '#9A9A94';
+  ctx.fillText('ctns', cx, cy + 11);
+
+  // Donut legend
+  const legend = document.getElementById('donut-legend');
+  legend.innerHTML = STATUS_ORDER.map(s => {
+    const n = counts[s] || 0;
+    if (!n) return '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${STATUS_COLORS[s]};display:inline-block;flex-shrink:0;"></span>
+        <span style="color:var(--text-2)">${STATUS_LABELS[s]}</span>
+      </div>
+      <span style="font-weight:600;color:var(--text)">${n}</span>
+    </div>`;
+  }).join('');
+
+  // Pipeline badges — always show "Label · N" so count is visible for every step
+  PIPELINE_IDS.forEach(s => {
+    const el = document.getElementById('rp-' + s);
+    if (!el) return;
+    const n = counts[s] || 0;
+    const color = STATUS_DOTS[s];
+    if (n > 0) {
+      el.innerHTML = `<span style="margin-top:5px;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:${STATUS_COLORS[s]}44;color:${color}">${STATUS_LABELS[s]} &middot; ${n}</span>`;
+    } else {
+      el.innerHTML = `<span style="margin-top:5px;display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;background:#F0EFE8;color:#9A9A94">— &middot; 0</span>`;
+    }
+  });
+})();
+
+// ── CALENDAR ─────────────────────────────────────────────────────
+let calDate = new Date();
+function calNav(dir) { calDate.setMonth(calDate.getMonth() + dir); renderCal(); }
+function renderCal() {
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  document.getElementById('cal-title').textContent = MONTHS[m] + ' ' + y;
+  const first = new Date(y, m, 1).getDay();
+  const total = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+  DAYS.forEach(d => { html += `<div style="text-align:center;font-size:9px;font-weight:700;color:var(--text-3);padding:3px 0;text-transform:uppercase;">${d}</div>`; });
+  for (let i = 0; i < first; i++) html += '<div></div>';
+  for (let d = 1; d <= total; d++) {
+    const isToday = d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
+    html += `<div style="text-align:center;font-size:11px;padding:5px 2px;border-radius:4px;${isToday ? 'background:var(--accent);color:#fff;font-weight:700;' : 'color:var(--text-2);'}">${d}</div>`;
+  }
+  html += '</div>';
+  document.getElementById('cal-grid').innerHTML = html;
+}
+renderCal();
+
+// ── NEXT UP ──────────────────────────────────────────────────────
+(function() {
+  const el = document.getElementById('next-up-list');
+  if (!CONTAINERS.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">Run update_dashboard.py to load data.</div>';
+    return;
+  }
+  // Most active (closest to delivery) first — sort by rank descending (DEL=7 last)
+  const upcoming = CONTAINERS
+    .filter(c => normStatus(c.status) !== 'DEL' && c.deliveryDate && c.deliveryDate !== '—')
+    .sort((a, b) => (STATUS_RANK[normStatus(b.status)]||0) - (STATUS_RANK[normStatus(a.status)]||0))
+    .slice(0, 4);
+  if (!upcoming.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-3)">All containers delivered.</div>';
+    return;
+  }
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = '<div style="display:flex;flex-direction:column;">';
+  upcoming.forEach((c, i) => {
+    const s = normStatus(c.status);
+    const sc = STATUS_COLORS[s];
+    const dc = STATUS_DOTS[s];
+    const border = i > 0 ? 'border-top:1px solid var(--border);' : '';
+    const parsed = new Date(c.deliveryDate);
+    const dayOfWeek = !isNaN(parsed) ? DAYS[parsed.getDay()] : '';
+    const parts = c.deliveryDate.split(',');
+    const dateMain = parts[0] || c.deliveryDate;
+    const dateYear = parts[1] ? parts[1].trim() : '';
+    html += `<div style="${border}display:flex;align-items:center;gap:12px;padding:10px 4px;">
+      ${dayOfWeek ? `<div style="background:${sc};color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 8px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;">${dayOfWeek}</div>` : ''}
+      <div style="flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.1;">${dateMain}</div>
+        <div style="font-size:9px;color:var(--text-3);">${dateYear}</div>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);">CTN ${c.num}</div>
+        <div style="font-size:10px;color:var(--text-3);">${c.floors ? 'Fl. ' + c.floors : '—'}</div>
+      </div>
+      <div style="flex-shrink:0;">
+        <span style="font-size:9px;font-weight:600;color:${dc};background:${sc}44;padding:3px 8px;border-radius:4px;">${STATUS_LABELS[s]}</span>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+})();
+
+// ── CONTAINER TABLE ──────────────────────────────────────────────
+function renderContainers() {
+  const tb = document.getElementById('ctn-tbody');
+  if (!CONTAINERS.length) {
+    tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>';
+    return;
+  }
+  tb.innerHTML = CONTAINERS.map(c => {
+    const s = normStatus(c.status);
+    const dot = STATUS_DOTS[s];
+    const bdg = STATUS_BADGE[s];
+    return `<tr>
+      <td><span style="display:inline-flex;align-items:center;gap:5px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>${c.num}
+      </span></td>
+      <td><span class="bdg ${bdg}">${STATUS_LABELS[s]}</span></td>
+      <td>${c.week || '—'}</td>
+      <td style="color:var(--text-3)">${c.floors || '—'}</td>
+      <td>${c.loadDate || '—'}</td>
+      <td>${c.shipDate || '—'}</td>
+      <td style="color:var(--text-2)">${c.vessel1 || '—'}</td>
+      <td style="color:var(--text-2)">${c.vessel2 || '—'}</td>
+      <td>${c.etaLAX || '—'}</td>
+      <td>${c.etaPhoenix || '—'}</td>
+      <td style="font-weight:500">${c.deliveryDate || '—'}</td>
+      <td style="color:var(--text-3)">${c.installDate || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BUILDING MATRIX ──────────────────────────────────────────────
+function renderBuilding() {
+  const gridEl = document.getElementById('bldg-grid');
+  const sideEl = document.getElementById('bldg-sidebar');
+  if (!UNITS.length) {
+    gridEl.innerHTML = '<div class="empty-state"><div class="big">&#127959;</div>Run update_dashboard.py to load unit data</div>';
+    sideEl.innerHTML = '';
+    return;
+  }
+
+  // Unit status: worst (least progressed) among its containers
+  function unitStatus(u) {
+    if (!u.inScope) return null;
+    if (!u.ctns || !u.ctns.length) return 'PROJ';
+    return u.ctns.map(n => {
+      const c = CONTAINERS.find(x => x.num === n);
+      return c ? normStatus(c.status) : 'PROJ';
+    }).reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
+  }
+
+  // Group units by floor
+  const byFloor = {};
+  UNITS.forEach(u => {
+    if (!byFloor[u.floor]) byFloor[u.floor] = [];
+    byFloor[u.floor].push(u);
+  });
+  const floors = Object.keys(byFloor).map(Number).sort((a,b) => b-a);
+
+  // All unit suffixes (unit # % 100) to form columns
+  const allSuffixes = [...new Set(UNITS.map(u => u.unit % 100))].sort((a,b) => a-b);
+
+  // Build matrix table
+  let html = '<table class="bldg-matrix"><thead><tr><th style="text-align:left">Fl.</th>';
+  allSuffixes.forEach(n => { html += `<th>${String(n).padStart(2,'0')}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  floors.forEach(floor => {
+    const units = byFloor[floor];
+    html += `<tr><td class="floor-lbl">${floor}</td>`;
+    allSuffixes.forEach(pos => {
+      const u = units.find(x => x.unit % 100 === pos);
+      if (!u) {
+        html += '<td style="background:var(--bg);border:1px solid var(--border)"></td>';
+        return;
+      }
+      if (!u.inScope) {
+        html += `<td>
+          <div class="mcell" style="background:var(--scope-bg);opacity:.55;">
+            <div class="mcell-id" style="color:var(--text-3)">${u.unit}</div>
+            <div class="mcell-bar" style="background:var(--border)"></div>
+          </div>
+        </td>`;
+        return;
+      }
+      const s = unitStatus(u);
+      const sc = STATUS_COLORS[s] || '#D8EDEA';
+      const ctnList = u.ctns && u.ctns.length ? u.ctns.join(', ') : '—';
+      const tip = `${u.unit} · ${u.type||'—'} · CTN ${ctnList} · ${STATUS_LABELS[s]||s}`;
+      html += `<td style="background:${sc}22">
+        <div class="mcell">
+          <div class="mcell-id" style="background:${sc}18">${u.unit}</div>
+          <div class="mcell-bar" style="background:${sc}"></div>
+          <div class="mcell-tip">${tip}</div>
+        </div>
+      </td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  gridEl.innerHTML = html;
+
+  // Sidebar: floor progress
+  function unitStatusForFloor(u) { return unitStatus(u); }
+  let shtml = `<table style="width:100%;border-collapse:collapse;font-size:10px;">
+    <thead><tr>
+      <th style="text-align:left;padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Fl.</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Units</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">Del</th>
+      <th style="padding:3px 6px;background:var(--bg);border:1px solid var(--border);font-size:9px;color:var(--text-3)">%</th>
+    </tr></thead><tbody>`;
+  floors.forEach(floor => {
+    const inScopeUnits = byFloor[floor].filter(u => u.inScope);
+    const total = inScopeUnits.length;
+    const del = inScopeUnits.filter(u => unitStatusForFloor(u) === 'DEL').length;
+    const pct = total > 0 ? Math.ro
