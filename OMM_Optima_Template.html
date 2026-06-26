@@ -340,20 +340,19 @@ tbody tr:hover td { background: var(--bg); }
 
 <!-- ===== BUILDING MATRIX ===== -->
 <div id="bldg" class="panel">
-  <div class="leg" style="margin-bottom:10px">
-    <span class="leg-i"><span class="dot d-DEL"></span> Delivered</span>
-    <span class="leg-i"><span class="dot d-RAIL"></span> Phoenix RR</span>
-    <span class="leg-i"><span class="dot d-PORT"></span> Port (LAX)</span>
-    <span class="leg-i"><span class="dot d-ENR"></span> Sea freight</span>
-    <span class="leg-i"><span class="dot d-LDD"></span> Loaded</span>
-    <span class="leg-i"><span class="dot d-LDG"></span> Loading</span>
-    <span class="leg-i"><span class="dot d-PROJ"></span> Projected</span>
-    <span class="leg-i"><span class="dot d-scope"></span> Not in scope</span>
+  <div class="leg" style="margin-bottom:12px;flex-wrap:wrap;gap:6px 14px;">
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1A5C47;vertical-align:middle;margin-right:5px;"></span>Delivered</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#22735C;vertical-align:middle;margin-right:5px;"></span>Phoenix RR</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#35A082;vertical-align:middle;margin-right:5px;"></span>Port (LAX)</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#44B594;vertical-align:middle;margin-right:5px;"></span>Sea Freight</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#62C8A8;vertical-align:middle;margin-right:5px;"></span>Loaded</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#90D8C0;vertical-align:middle;margin-right:5px;"></span>Loading</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#A8D4CE;vertical-align:middle;margin-right:5px;"></span>Projected</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#C8B97C;vertical-align:middle;margin-right:5px;"></span>Combo Unit</span>
+    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#E0DDD8;border:1px solid #ccc;vertical-align:middle;margin-right:5px;"></span>Not in Scope</span>
   </div>
-  <div style="display:flex;gap:12px;align-items:flex-start;">
-    <div id="bldg-grid" style="flex:1;overflow-x:auto;"></div>
-    <div id="bldg-sidebar" style="flex-shrink:0;min-width:180px;"></div>
-  </div>
+  <div id="bldg-grid"></div>
+  <div id="bldg-sidebar" style="display:none;"></div>
 </div>
 
 <!-- ===== DAMAGE / OPEN ITEMS ===== -->
@@ -766,58 +765,103 @@ function renderBuilding() {
       .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
   }
 
-  // Group by floor, high→low
+  // Group by floor, high → low
   const byFloor = {};
   UNITS.forEach(u => {
-    if (!byFloor[u.floor]) byFloor[u.floor] = [];
-    byFloor[u.floor].push(u);
+    const f = +u.floor;
+    if (!byFloor[f]) byFloor[f] = [];
+    byFloor[f].push(u);
   });
-  const floors = Object.keys(byFloor).map(Number).sort((a,b) => b-a);
+  const floors = Object.keys(byFloor).map(Number).sort((a,b) => b - a);
 
-  let html = '';
+  // All unique positions across every floor — defines the shared column grid
+  const allPos = [...new Set(UNITS.map(u => u.unit % 1000))].sort((a,b) => a - b);
+  // Lookup: "floor-pos" → unit
+  const uMap = {};
+  UNITS.forEach(u => { uMap[`${+u.floor}-${u.unit % 1000}`] = u; });
+
+  const N = allPos.length;
+  // minmax(44px,1fr): on laptop 1fr fills full width (no horizontal scroll);
+  // on phone 44px minimum kicks in and overflow-x scroll engages naturally.
+  const gridCols = `repeat(${N}, minmax(44px, 1fr))`;
+
+  // ── Header cells — unit number only ──
+  const headerCells = allPos.map(pos =>
+    `<div style="padding:6px 4px;border-radius:var(--radius);background:rgba(255,255,255,0.12);text-align:center;min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${String(pos).padStart(2,'0')}</div>
+    </div>`
+  ).join('');
+
+  let html = `<div style="overflow-x:auto;">
+
+  <!-- ── Sticky column header ── -->
+  <div style="display:flex;align-items:stretch;margin-bottom:6px;position:sticky;top:0;z-index:4;">
+    <div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:56px;background:var(--accent);border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>
+    <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
+      ${headerCells}
+    </div>
+  </div>`;
+
   floors.forEach(floor => {
-    const scopedUnits = byFloor[floor].filter(u => u.inScope).sort((a,b) => a.unit - b.unit);
-    if (!scopedUnits.length) return;
+    if (!byFloor[floor] || !byFloor[floor].length) return;
 
-    html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);">Floor ${floor}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;">`;
+    // Build one grid cell per position
+    const cells = allPos.map(pos => {
+      const u = uMap[`${floor}-${pos}`];
 
-    scopedUnits.forEach(u => {
-      const us = unitStatus(u);
+      if (!u) return `<div></div>`;
+
+      if (!u.inScope) {
+        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px 4px;opacity:.4;min-width:0;overflow:hidden;">
+          <div style="font-size:9px;font-weight:600;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>
+          <div style="font-size:7px;color:var(--text-3);margin-top:4px;font-style:italic;">Not in scope</div>
+        </div>`;
+      }
+
+      const us     = unitStatus(u);
       const uColor = STATUS_COLORS[us] || '#A8D4CE';
       const uDot   = STATUS_DOTS[us]   || '#D4890A';
+      const comboTag = u.combo
+        ? `<div style="font-size:7px;font-weight:700;color:#7A6A2A;margin-top:1px;">COMBO</div>`
+        : '';
 
-      let compHtml = '';
+      let areaHtml = '';
       if (u.components && u.components.length) {
         u.components.forEach(comp => {
-          const cs = ctnStatus(comp.ctn);
-          const cc = STATUS_COLORS[cs] || '#A8D4CE';
-          compHtml += `<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border);">
-            <span style="font-size:9px;font-weight:700;background:${cc};color:#fff;padding:2px 6px;border-radius:3px;flex-shrink:0;min-width:20px;text-align:center;">${comp.ctn}</span>
-            <span style="font-size:11px;color:var(--text-2);">${comp.name}</span>
+          const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || '#A8D4CE';
+          areaHtml += `<div style="display:flex;align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--border);min-width:0;">
+            <span style="font-size:8px;font-weight:700;background:${cc};color:#fff;padding:1px 4px;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>
+            <span style="font-size:8px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>
           </div>`;
         });
       } else {
-        compHtml = '<div style="font-size:10px;color:var(--text-3);padding:4px 0;">No areas assigned</div>';
+        areaHtml = `<div style="font-size:8px;color:var(--text-3);font-style:italic;padding:2px 0;">—</div>`;
       }
 
-      html += `<div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid ${uColor};border-radius:var(--radius-lg);padding:12px;width:175px;flex-shrink:0;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:6px;">
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);">${u.unit}</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${u.type || '—'}</div>
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid ${uColor};border-radius:var(--radius);padding:6px 5px;min-width:0;overflow:hidden;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:2px;margin-bottom:4px;">
+          <div style="min-width:0;">
+            <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>
+            ${comboTag}
           </div>
-          <span style="font-size:9px;font-weight:600;color:${uDot};background:${uColor}33;padding:2px 6px;border-radius:4px;white-space:nowrap;">${STATUS_LABELS[us]||us}</span>
+          <span style="font-size:7px;font-weight:700;color:${uDot};background:${uColor}33;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;">${STATUS_LABELS[us]||us}</span>
         </div>
-        ${compHtml}
+        ${areaHtml}
       </div>`;
-    });
+    }).join('');
 
-    html += '</div></div>';
+    html += `<div style="display:flex;align-items:stretch;margin-bottom:6px;">
+      <div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:56px;background:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
+        <span style="font-size:11px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.05em;">Floor ${floor}</span>
+      </div>
+      <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
+        ${cells}
+      </div>
+    </div>`;
   });
 
-  gridEl.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--text-3)">No in-scope units found.</div>';
+  html += '</div>';
+  gridEl.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--text-3)">No units found.</div>';
 }
 
 // ── UNIT DROPDOWN ────────────────────────────────────────────────
