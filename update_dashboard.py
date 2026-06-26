@@ -16,44 +16,19 @@ from datetime import datetime
 import openpyxl
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
-SITE_DIR      = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
-EXCEL_FILE    = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
-ONEDRIVE_HTML = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")
+SITE_DIR   = r"C:\Users\Edwin\OneDrive - Studio Snaidero Chicago\OMM_Optima Website"
+EXCEL_FILE = os.path.join(SITE_DIR, "Output_Optima_Container Matrix & Schedule .xlsx")
+HTML_FILE  = os.path.join(SITE_DIR, "OMM_Optima_Dashboard.html")
 
-# Work files live in C:\Temp — completely outside OneDrive, immune to sync corruption
-TEMP_DIR      = r"C:\Temp\omm-optima"
-HTML_FILE     = os.path.join(TEMP_DIR, "OMM_Optima_Dashboard.html")
-TEMPLATE_FILE = os.path.join(TEMP_DIR, "OMM_Optima_Template.html")
-
-AUTO_GIT   = True   # Set to False to skip the git push
+AUTO_GIT = True   # Set to False to skip the git push
 
 SH_CTN  = "OMM_Overall Container Matrix"
 SH_UNIT = "OMM_Unit Matrix"
+
+GITHUB_REMOTE = "https://github.com/edwin210designhouse/OMM-OPTIMA-210-DASHBOARD.git"
 # ────────────────────────────────────────────────────────────────────────────
 
-def ensure_template():
-    """
-    Ensure a clean HTML template exists in C:\\Temp.
-    On first run, copies from OneDrive. If OneDrive copy is corrupted, errors out clearly.
-    """
-    os.makedirs(TEMP_DIR, exist_ok=True)
-    if os.path.exists(TEMPLATE_FILE):
-        return True
-    # Try to copy from OneDrive
-    if os.path.exists(ONEDRIVE_HTML):
-        with open(ONEDRIVE_HTML, 'rb') as f:
-            raw = f.read().replace(b'\x00', b'')
-        if b'DATA_START' in raw and b'</html>' in raw:
-            with open(TEMPLATE_FILE, 'wb') as f:
-                f.write(raw)
-            print("  Template saved to C:\\Temp.")
-            return True
-    print("\nERROR: Could not find a valid HTML template.")
-    print("Please ensure OMM_Optima_Dashboard.html is in the OMM_Optima Website folder.")
-    return False
-
 def fmt_date(val):
-    """Format a datetime or string value for display (e.g. 'Aug 5, 2026')."""
     if val is None:
         return "—"
     if isinstance(val, datetime):
@@ -63,12 +38,11 @@ def fmt_date(val):
     return s if s else "—"
 
 def read_containers(ws):
-    """Read container schedule rows. Data starts row 11, CTN# is col index 4."""
     containers = []
     for row in ws.iter_rows(min_row=11, values_only=True):
         if len(row) < 32:
             continue
-        num = row[4]          # CONT. #  (integer 1-21)
+        num = row[4]
         if not isinstance(num, int):
             continue
         containers.append({
@@ -89,8 +63,6 @@ def read_containers(ws):
         })
     return sorted(containers, key=lambda x: x["num"])
 
-# Room component columns: (display name, STS col index, CTN col index)
-# Matches the OMM_Unit Matrix sheet layout (0-indexed from row tuple)
 COMP_COLS = [
     ("Foyer",     7,  8),   ("Den",       9,  10),  ("Hall",     11, 12),
     ("Utility",   13, 14),  ("Closet",    15, 16),  ("Bev Ctr",  17, 18),
@@ -101,10 +73,9 @@ COMP_COLS = [
 ]
 
 def read_units(ws):
-    """Read unit matrix rows. Data starts row 11."""
     units = []
     for row in ws.iter_rows(min_row=11, values_only=True):
-        unit_num = row[3]     # UNIT column (e.g. 2006)
+        unit_num = row[3]
         if not isinstance(unit_num, int):
             continue
         status   = row[6]
@@ -129,57 +100,41 @@ def read_units(ws):
         })
     return units
 
-GITHUB_REMOTE = "https://github.com/edwin210designhouse/OMM-OPTIMA-210-DASHBOARD.git"
-
-# Store .git OUTSIDE OneDrive so it can never be corrupted by sync
-GIT_DIR = r"C:\Temp\omm-optima-git"
-
-def git_env():
-    """Git env vars: .git and work tree both in C:\\Temp, never touched by OneDrive."""
-    e = os.environ.copy()
-    e["GIT_DIR"] = GIT_DIR
-    e["GIT_WORK_TREE"] = TEMP_DIR  # push from C:\Temp, not OneDrive
-    return e
-
 def git_setup():
-    """Initialize git repo in C:\\Temp if not already done."""
-    os.makedirs(GIT_DIR, exist_ok=True)
-    env = git_env()
+    """Initialize or repair git repo inside the OneDrive folder."""
     def r(cmd):
-        return subprocess.run(cmd, env=env, cwd=SITE_DIR, capture_output=True, text=True)
+        return subprocess.run(cmd, cwd=SITE_DIR, capture_output=True, text=True)
     r(["git", "init"])
     r(["git", "config", "user.email", "flores.edwin9271@gmail.com"])
     r(["git", "config", "user.name", "Edwin"])
-    # Set remote (ignore error if already exists)
-    subprocess.run(["git", "remote", "remove", "origin"], env=env, cwd=SITE_DIR, capture_output=True)
+    r(["git", "branch", "-M", "main"])
+    subprocess.run(["git", "remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
     r(["git", "remote", "add", "origin", GITHUB_REMOTE])
 
 def git_push(commit_msg):
-    """Push to GitHub using git stored in C:\\Temp (immune to OneDrive corruption)."""
-    if not os.path.exists(GIT_DIR):
-        git_setup()
-
-    env = git_env()
+    """Add, commit, and push. Auto-repairs git if it's broken."""
     def r(cmd):
-        return subprocess.run(cmd, env=env, cwd=SITE_DIR, capture_output=True, text=True)
+        return subprocess.run(cmd, cwd=SITE_DIR, capture_output=True, text=True)
+
+    # Remove stale lock file if present
+    lock = os.path.join(SITE_DIR, ".git", "index.lock")
+    if os.path.exists(lock):
+        try:
+            os.remove(lock)
+        except Exception:
+            pass
 
     r(["git", "add", "-A"])
     rc = r(["git", "commit", "-m", commit_msg])
     if "nothing to commit" in (rc.stdout + rc.stderr):
-        # Force a commit by touching the timestamp
         r(["git", "commit", "--allow-empty", "-m", commit_msg])
 
     rp = r(["git", "push", "-u", "origin", "main", "--force"])
     if rp.returncode == 0:
         return True, "pushed"
 
-    # Push failed — re-init and retry once
+    # Push failed — re-init git and retry once
     print("  Push failed, re-initializing git...")
-    import shutil
-    try:
-        shutil.rmtree(GIT_DIR)
-    except Exception:
-        pass
     git_setup()
     r(["git", "add", "-A"])
     r(["git", "commit", "--allow-empty", "-m", commit_msg])
@@ -193,16 +148,10 @@ def main():
     print("  OMM Optima Dashboard -- Auto-update")
     print("=" * 54)
 
-    # ── Ensure template exists in C:\Temp ──────────────────────
-    if not ensure_template():
-        input("\nPress Enter to close...")
-        return
-
     # ── Read Excel ──────────────────────────────────────────────
     print(f"\nReading: {os.path.basename(EXCEL_FILE)}")
     if not os.path.exists(EXCEL_FILE):
         print(f"\nERROR: Excel file not found at:\n  {EXCEL_FILE}")
-        print("\nMake sure the Excel file is in the same folder as this script.")
         input("\nPress Enter to close...")
         return
 
@@ -210,6 +159,7 @@ def main():
         wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
     except Exception as e:
         print(f"\nERROR opening Excel: {e}")
+        print("Make sure Excel is fully closed, then try again.")
         input("\nPress Enter to close...")
         return
 
@@ -225,7 +175,7 @@ def main():
     print(f"  {len(containers)} containers | {in_scope} units in scope")
 
     if not containers:
-        print("\nERROR: No containers found. Check that sheet name is correct.")
+        print("\nERROR: No containers found. Check sheet name.")
         input("\nPress Enter to close...")
         return
 
@@ -243,40 +193,42 @@ def main():
         "// DATA_END"
     )
 
-    # ── Update HTML (from C:\Temp template — immune to OneDrive) ──
+    # ── Read HTML, strip any corruption, inject data ────────────
     print(f"\nUpdating dashboard HTML...")
-    if not os.path.exists(TEMPLATE_FILE):
-        print(f"\nERROR: Template not found at:\n  {TEMPLATE_FILE}")
+    if not os.path.exists(HTML_FILE):
+        print(f"\nERROR: HTML file not found at:\n  {HTML_FILE}")
         input("\nPress Enter to close...")
         return
 
     try:
-        with open(TEMPLATE_FILE, "rb") as f:
-            raw = f.read().replace(b'\x00', b'')
-        html = raw.decode("utf-8")
+        with open(HTML_FILE, "rb") as f:
+            raw = f.read().replace(b'\x00', b'')  # strip null bytes
+        # Strip any junk before <!DOCTYPE html>
+        idx = raw.find(b'<!DOCTYPE html>')
+        if idx > 0:
+            print(f"  Stripped {idx} bytes of junk before DOCTYPE.")
+            raw = raw[idx:]
+        html = raw.decode("utf-8", errors="replace")
     except Exception as e:
-        print(f"\nERROR reading template: {e}")
+        print(f"\nERROR reading HTML: {e}")
         input("\nPress Enter to close...")
         return
 
     new_html, count = re.subn(
         r"// DATA_START.*?// DATA_END",
-        data_block,
+        lambda m: data_block,
         html,
         flags=re.DOTALL
     )
 
     if count == 0:
-        print("\nERROR: Data markers not found in template.")
+        print("\nERROR: DATA_START / DATA_END markers not found in HTML.")
+        print("The HTML file may be corrupted. Contact support.")
         input("\nPress Enter to close...")
         return
 
     try:
-        # Write to C:\Temp (OneDrive never touches this)
         with open(HTML_FILE, "w", encoding="utf-8") as f:
-            f.write(new_html)
-        # Also copy to OneDrive folder so user can see it locally
-        with open(ONEDRIVE_HTML, "w", encoding="utf-8") as f:
             f.write(new_html)
         print(f"  HTML updated successfully.")
     except Exception as e:
@@ -292,13 +244,13 @@ def main():
         if ok:
             print(f"  OK   ({msg})")
             print(f"\nDone! Site will update within ~60 seconds.")
+            print(f"\n  https://edwin210designhouse.github.io/OMM-OPTIMA-210-DASHBOARD/")
         else:
             print(f"\nERROR pushing to GitHub: {msg}")
-            print("Close Excel and any other apps, then try again.")
+            print("Try closing all apps and running again.")
     else:
         print(f"\nDone! (Git push skipped — AUTO_GIT = False)")
 
-    print(f"\n  https://edwin210designhouse.github.io/OMM-OPTIMA-210-DASHBOARD/")
     input("\nPress Enter to close...")
 
 if __name__ == "__main__":
