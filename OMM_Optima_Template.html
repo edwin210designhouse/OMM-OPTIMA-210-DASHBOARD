@@ -784,6 +784,7 @@ function renderBuilding() {
   // minmax(44px,1fr): on laptop 1fr fills full width (no horizontal scroll);
   // on phone 44px minimum kicks in and overflow-x scroll engages naturally.
   const gridCols = `repeat(${N}, minmax(44px, 1fr))`;
+  const LBL_W = 28; // narrow floor label column
 
   // ── Header cells — unit number only ──
   const headerCells = allPos.map(pos =>
@@ -796,7 +797,7 @@ function renderBuilding() {
 
   <!-- ── Sticky column header ── -->
   <div style="display:flex;align-items:stretch;margin-bottom:6px;position:sticky;top:0;z-index:4;">
-    <div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:56px;background:var(--accent);border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>
+    <div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:var(--accent);border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>
     <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
       ${headerCells}
     </div>
@@ -851,8 +852,8 @@ function renderBuilding() {
     }).join('');
 
     html += `<div style="display:flex;align-items:stretch;margin-bottom:6px;">
-      <div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:56px;background:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
-        <span style="font-size:11px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.05em;">Floor ${floor}</span>
+      <div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
+        <span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.04em;">FL ${floor}</span>
       </div>
       <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
         ${cells}
