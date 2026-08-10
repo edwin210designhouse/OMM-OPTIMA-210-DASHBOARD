@@ -765,97 +765,116 @@ function renderBuilding() {
       .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
   }
 
-  // Group by floor, high → low
   const byFloor = {};
-  UNITS.forEach(u => {
-    const f = +u.floor;
-    if (!byFloor[f]) byFloor[f] = [];
-    byFloor[f].push(u);
-  });
+  UNITS.forEach(u => { const f = +u.floor; if (!byFloor[f]) byFloor[f] = []; byFloor[f].push(u); });
   const floors = Object.keys(byFloor).map(Number).sort((a,b) => b - a);
 
-  // All unique positions across every floor — defines the shared column grid
   const allPos = [...new Set(UNITS.map(u => u.unit % 1000))].sort((a,b) => a - b);
-  // Lookup: "floor-pos" → unit
+
+  // posType: canonical type per column from in-scope non-combo units
+  const posType = {};
+  UNITS.forEach(u => {
+    const p = u.unit % 1000;
+    if (u.inScope && u.type && !u.combo && !posType[p]) posType[p] = String(u.type);
+  });
+
   const uMap = {};
   UNITS.forEach(u => { uMap[`${+u.floor}-${u.unit % 1000}`] = u; });
 
   const N = allPos.length;
-  // minmax(44px,1fr): on laptop 1fr fills full width (no horizontal scroll);
-  // on phone 44px minimum kicks in and overflow-x scroll engages naturally.
+  const LBL_W = 28;
+  // minmax(44px,1fr): fills laptop width; phone hits min and gets horizontal scroll
   const gridCols = `repeat(${N}, minmax(44px, 1fr))`;
-  const LBL_W = 28; // narrow floor label column
 
-  // ── Header cells — unit number only ──
-  const headerCells = allPos.map(pos =>
-    `<div style="padding:6px 4px;border-radius:var(--radius);background:rgba(255,255,255,0.12);text-align:center;min-width:0;">
-      <div style="font-size:11px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${String(pos).padStart(2,'0')}</div>
+  // ── Two-row sticky header: TYPE + UNIT # ──
+  const typeHdr = allPos.map(pos =>
+    `<div style="padding:3px 2px;text-align:center;min-width:0;border-right:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:6.5px;font-weight:600;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.03em;">${posType[pos]||'—'}</div>
+    </div>`
+  ).join('');
+
+  const numHdr = allPos.map(pos =>
+    `<div style="padding:3px 2px 5px;text-align:center;min-width:0;border-right:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:11px;font-weight:700;color:#fff;">${String(pos).padStart(2,'0')}</div>
     </div>`
   ).join('');
 
   let html = `<div style="overflow-x:auto;">
 
-  <!-- ── Sticky column header ── -->
-  <div style="display:flex;align-items:stretch;margin-bottom:6px;position:sticky;top:0;z-index:4;">
+  <!-- ── Sticky header ── -->
+  <div style="position:sticky;top:0;z-index:4;display:flex;align-items:stretch;margin-bottom:6px;">
     <div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:var(--accent);border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>
-    <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
-      ${headerCells}
+    <div style="flex:1;min-width:0;background:var(--accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:${gridCols};border-bottom:1px solid rgba(255,255,255,0.15);">${typeHdr}</div>
+      <div style="display:grid;grid-template-columns:${gridCols};">${numHdr}</div>
     </div>
   </div>`;
 
   floors.forEach(floor => {
     if (!byFloor[floor] || !byFloor[floor].length) return;
 
-    // Build one grid cell per position
+    // Detect combo groups: typeKey → first (min) position on this floor
+    const comboFirstPos = {};
+    byFloor[floor].filter(u => u.inScope && u.combo).forEach(u => {
+      const k = String(u.type);
+      const p = u.unit % 1000;
+      if (!(k in comboFirstPos) || p < comboFirstPos[k]) comboFirstPos[k] = p;
+    });
+
     const cells = allPos.map(pos => {
       const u = uMap[`${floor}-${pos}`];
 
-      if (!u) return `<div></div>`;
+      // Gap — no unit at this position on this floor
+      if (!u) return `<div style="background:transparent;"></div>`;
 
+      // Not in scope
       if (!u.inScope) {
-        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:5px 4px;opacity:.4;min-width:0;overflow:hidden;">
-          <div style="font-size:9px;font-weight:600;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>
-          <div style="font-size:7px;color:var(--text-3);margin-top:4px;font-style:italic;">Not in scope</div>
+        return `<div style="background:var(--scope-bg);padding:5px 4px;min-width:0;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;">
+          <div style="font-size:8px;font-weight:500;color:var(--text-3);opacity:.5;">${u.unit}</div>
         </div>`;
       }
 
+      // In-scope unit
       const us     = unitStatus(u);
       const uColor = STATUS_COLORS[us] || '#A8D4CE';
-      const uDot   = STATUS_DOTS[us]   || '#D4890A';
-      const comboTag = u.combo
-        ? `<div style="font-size:7px;font-weight:700;color:#7A6A2A;margin-top:1px;">COMBO</div>`
-        : '';
+      const uDot   = STATUS_DOTS[us]   || '#1A5C2A';
 
-      let areaHtml = '';
-      if (u.components && u.components.length) {
-        u.components.forEach(comp => {
-          const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || '#A8D4CE';
-          areaHtml += `<div style="display:flex;align-items:center;gap:3px;padding:2px 0;border-bottom:1px solid var(--border);min-width:0;">
-            <span style="font-size:8px;font-weight:700;background:${cc};color:#fff;padding:1px 4px;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>
-            <span style="font-size:8px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>
-          </div>`;
-        });
-      } else {
-        areaHtml = `<div style="font-size:8px;color:var(--text-3);font-style:italic;padding:2px 0;">—</div>`;
+      // Combo tag — only show on the FIRST unit of each combo group
+      let comboTag = '';
+      if (u.combo) {
+        const k = String(u.type);
+        if (comboFirstPos[k] === pos) {
+          comboTag = `<div style="font-size:6px;font-weight:700;color:${uDot};background:${uDot}22;border-radius:2px;padding:1px 4px;display:inline-block;margin-bottom:3px;letter-spacing:.05em;">COMBO</div>`;
+        }
       }
 
-      return `<div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid ${uColor};border-radius:var(--radius);padding:6px 5px;min-width:0;overflow:hidden;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:2px;margin-bottom:4px;">
-          <div style="min-width:0;">
-            <div style="font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>
-            ${comboTag}
-          </div>
-          <span style="font-size:7px;font-weight:700;color:${uDot};background:${uColor}33;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;">${STATUS_LABELS[us]||us}</span>
-        </div>
-        ${areaHtml}
+      // Room area rows
+      let rooms = '';
+      if (u.components && u.components.length) {
+        rooms = u.components.map(comp => {
+          const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
+          return `<div style="display:flex;align-items:center;gap:2px;padding:1.5px 0;border-top:1px solid rgba(0,0,0,0.07);min-width:0;">
+            <span style="font-size:6.5px;font-weight:700;background:${cc};color:#fff;padding:0 3px;line-height:1.8;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>
+            <span style="font-size:6.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>
+          </div>`;
+        }).join('');
+      } else {
+        rooms = `<div style="font-size:7px;color:var(--text-3);font-style:italic;padding:2px 0;">—</div>`;
+      }
+
+      return `<div style="background:${uColor}18;padding:5px 4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;">
+        ${comboTag}
+        <div style="font-size:9px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${u.unit}</div>
+        ${rooms}
       </div>`;
     }).join('');
 
     html += `<div style="display:flex;align-items:stretch;margin-bottom:6px;">
       <div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
-        <span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.04em;">FL ${floor}</span>
+        <span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>
       </div>
-      <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:4px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius-lg) var(--radius-lg) 0;">
+      <!-- gap:1px + border background = clean grid lines without double-border issues -->
+      <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:1px;background:var(--border);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">
         ${cells}
       </div>
     </div>`;
