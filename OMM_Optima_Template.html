@@ -452,39 +452,31 @@ tbody tr:hover td { background: var(--bg); }
 <!-- ===== BUILDING MATRIX ===== -->
 <div id="bldg" class="panel">
 
-  <!-- Print-only header for page 2 — hidden on screen, shown in print inside #bldg -->
-  <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:16px;">
-    <!-- Topbar replica -->
-    <div style="display:flex;flex-direction:column;align-items:stretch;padding-bottom:16px;margin-bottom:14px;border-bottom:1px solid rgba(0,0,0,0.10);">
-      <!-- Row 1: Dandamudi's INC centered -->
-      <div style="display:flex;justify-content:center;align-items:center;padding-bottom:28px;">
-        <img src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:26px;width:auto;">
+  <!-- Print-only header for page 2 — compact single row to maximise matrix space -->
+  <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:8px;">
+    <!-- Single-row topbar: 210 logo + title | date + Dandamudi + sketch -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(0,0,0,0.12);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="210 Black.PNG" alt="210 Design House" style="height:40px;width:auto;">
+        <div>
+          <div style="font-size:15px;font-weight:500;letter-spacing:-.3px;color:#1A1A18;">OMM · Optima McDowell Mountain</div>
+          <div class="print-page-sub" style="font-size:11px;color:#5C5C58;margin-top:2px;">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
+        </div>
       </div>
-      <!-- Row 2: 210 logo + title | date pill + week + sketch -->
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:16px;">
-          <img src="210 Black.PNG" alt="210 Design House" style="height:71px;width:auto;">
-          <div>
-            <div style="font-size:20px;font-weight:500;letter-spacing:-.3px;color:#1A1A18;">OMM · Optima McDowell Mountain</div>
-            <div class="print-page-sub" style="font-size:13px;color:#5C5C58;margin-top:4px;">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
-          </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+          <span class="print-date-pill" style="font-size:11px;background:#1A3A2A;color:#fff;padding:3px 8px;border-radius:99px;"></span>
+          <span class="print-week-text" style="font-size:11px;font-weight:500;color:#5C5C58;padding-right:6px;"></span>
         </div>
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-            <span class="print-date-pill" style="font-size:13px;background:#1A3A2A;color:#fff;padding:4px 10px;border-radius:99px;"></span>
-            <span class="print-week-text" style="font-size:13px;font-weight:500;color:#5C5C58;padding-right:10px;"></span>
-          </div>
-          <img src="black sketch.png" alt="Sketch" style="height:89px;width:auto;">
-        </div>
+        <img src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:16px;width:auto;">
+        <img src="black sketch.png" alt="Sketch" style="height:48px;width:auto;">
       </div>
     </div>
-    <!-- Tabs replica: Building matrix active -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:3px;border-radius:8px;">
-        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Container schedule</span>
-        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;background:#1A3A2A;color:#fff;">Building matrix</span>
-        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Damage / open items</span>
-      </div>
+    <!-- Compact tabs: Building matrix active -->
+    <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:2px;border-radius:6px;width:fit-content;margin-bottom:10px;">
+      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Container schedule</span>
+      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;background:#1A3A2A;color:#fff;">Building matrix</span>
+      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Damage / open items</span>
     </div>
   </div>
 
@@ -1255,36 +1247,82 @@ function printDashboard() {
     ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   document.body.setAttribute('data-print-date', stamp);
 
-  // Populate all print-only headers with live date / subtitle content
-  const todayPill   = document.getElementById('today-pill');
-  const todayWeek   = document.getElementById('today-week');
-  const pageSub     = document.getElementById('page-sub');
-  const pillText    = todayPill ? todayPill.textContent : '';
-  const weekText    = todayWeek ? todayWeek.textContent : '';
-  const subText     = pageSub  ? pageSub.textContent   : 'Scottsdale, AZ · Container Dashboard';
+  // Populate print headers with live date / subtitle content
+  const todayPill = document.getElementById('today-pill');
+  const todayWeek = document.getElementById('today-week');
+  const pageSub   = document.getElementById('page-sub');
+  const pillText  = todayPill ? todayPill.textContent : '';
+  const weekText  = todayWeek ? todayWeek.textContent : '';
+  const subText   = pageSub   ? pageSub.textContent   : 'Scottsdale, AZ · Container Dashboard';
   document.querySelectorAll('.print-date-pill').forEach(el => el.textContent = pillText);
   document.querySelectorAll('.print-week-text').forEach(el  => el.textContent = weekText);
   document.querySelectorAll('.print-page-sub').forEach(el   => el.textContent = subText);
 
-  // Show a brief toast reminding user not to change paper settings
-  let toast = document.getElementById('print-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'print-toast';
-    Object.assign(toast.style, {
-      position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
-      background:'#1A3A2A', color:'#fff', fontSize:'12px', fontWeight:'500',
-      padding:'10px 20px', borderRadius:'99px', zIndex:'99999',
-      boxShadow:'0 4px 16px rgba(0,0,0,0.25)', pointerEvents:'none',
-      transition:'opacity .3s',
-    });
-    document.body.appendChild(toast);
-  }
-  toast.textContent = '11 × 17 Landscape is pre-set — just click Print in the dialog.';
-  toast.style.opacity = '1';
-  setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+  // ── Equalize building matrix row heights for print ─────────────
+  // All floors must be the same height = the tallest floor (most rooms).
+  // We measure off-screen so the user never sees a flash.
+  const bldg          = document.getElementById('bldg');
+  const bldgOrigStyle = bldg.getAttribute('style') || '';
 
-  setTimeout(() => window.print(), 300);
+  // Show bldg off-screen for measurement (hidden from user)
+  bldg.style.cssText = 'display:block;visibility:hidden;position:fixed;top:-99999px;left:0;width:' + window.innerWidth + 'px;';
+
+  // All unit cells have height:76px inline — let them expand to natural height
+  const bldgCells = Array.from(bldg.querySelectorAll('[style*="height:76px"]'));
+  bldgCells.forEach(el => {
+    el.dataset.ph = el.style.height;
+    el.dataset.po = el.style.overflow;
+    el.style.height   = 'auto';
+    el.style.overflow = 'visible';
+  });
+
+  requestAnimationFrame(() => {
+    // Find the tallest cell (the floor with the most room items)
+    let maxH = 0;
+    bldgCells.forEach(el => { if (el.offsetHeight > maxH) maxH = el.offsetHeight; });
+    // Apply that height uniformly to every cell — all floor rows become equal
+    bldgCells.forEach(el => { el.style.height = maxH + 'px'; });
+
+    // Auto-zoom: measure total bldg height vs landscape page usable height
+    void bldg.offsetHeight;  // force reflow
+    const bldgH    = bldg.scrollHeight;
+    const pageH    = (11 - 0.5) * 96;          // 10.5in × 96dpi ≈ 1008px usable
+    const autoZoom = bldgH > pageH
+      ? +(pageH / bldgH).toFixed(2)
+      : 1.0;
+
+    // Restore bldg to its normal hidden state; inline zoom overrides @media print
+    bldg.setAttribute('style', bldgOrigStyle);
+    bldg.style.zoom = String(autoZoom);
+
+    // After printing, restore all cells to original screen heights
+    window.addEventListener('afterprint', () => {
+      bldgCells.forEach(el => {
+        el.style.height   = el.dataset.ph || '76px';
+        el.style.overflow = el.dataset.po || 'hidden';
+      });
+      bldg.style.zoom = '';
+    }, { once: true });
+
+    // Toast + print
+    let toast = document.getElementById('print-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'print-toast';
+      Object.assign(toast.style, {
+        position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+        background:'#1A3A2A', color:'#fff', fontSize:'12px', fontWeight:'500',
+        padding:'10px 20px', borderRadius:'99px', zIndex:'99999',
+        boxShadow:'0 4px 16px rgba(0,0,0,0.25)', pointerEvents:'none',
+        transition:'opacity .3s',
+      });
+      document.body.appendChild(toast);
+    }
+    toast.textContent = '11 × 17 Landscape — click Print in the dialog.';
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+    setTimeout(() => window.print(), 300);
+  });
 }
 </script>
 </body>
