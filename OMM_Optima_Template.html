@@ -15,6 +15,7 @@
   --text-3: #6A6A66;
   --accent: #1A3A2A;
   --del-bg:  #E3F0EE;  --del-text:  #0D5040;
+  --yard-bg: #E0F4F5;  --yard-text: #004D54;
   --rail-bg: #FAF0E8;  --rail-text: #703010;
   --port-bg: #EDEBFC;  --port-text: #3A2A8A;
   --enr-bg:  #E6EEF8;  --enr-text:  #1A3A70;
@@ -41,16 +42,63 @@ body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'S
 .date-pill { font-size: 13px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 99px; }
 
 /* Tabs */
-.tabs { display: flex; gap: 2px; margin-bottom: 16px; background: var(--surface); border: 1px solid var(--border); padding: 3px; border-radius: var(--radius); width: fit-content; }
+.tabs-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.tabs { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); padding: 3px; border-radius: var(--radius); width: fit-content; }
 .tab { padding: 6px 14px; font-size: 12px; font-weight: 500; border: none; background: none; border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; transition: background .12s, color .12s; }
 .tab:hover { background: var(--bg); color: var(--text); }
 .tab.on { background: var(--accent); color: #fff; }
+.tab-link { padding: 6px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: background .12s, color .12s; white-space: nowrap; }
+.tab-link:hover { background: var(--bg); color: var(--text); }
+.btn-print { padding: 6px 14px; font-size: 12px; font-weight: 500; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 6px; cursor: pointer; color: var(--text-2); font-family: inherit; display: inline-flex; align-items: center; gap: 5px; transition: background .12s, color .12s; white-space: nowrap; }
+.btn-print:hover { background: var(--accent); color: #fff; }
 .panel { display: none; }
+
+/* ── Print styles ──────────────────────────────────────────────── */
+@media print {
+  /* ① Force all background colors / images to print exactly as on screen */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ② Named page sizes — portrait for schedule, landscape for matrix */
+  @page ctn-page  { size: 11in 17in portrait;  margin: 0.3in 0.4in; }
+  @page bldg-page { size: 17in 11in landscape; margin: 0.25in 0.35in; }
+
+  /* ③ Hide the topbar — it lives OUTSIDE #ctn and would generate its own
+        unnamed page before the ctn-page, causing an unwanted blank/header page.
+        The #print-header inside #ctn replaces it. */
+  .topbar { display: none !important; }
+
+  /* ④ Hide nav, buttons, interactive chrome */
+  .tabs-row, .btn-print, #bldg-hover-pop, #print-toast { display: none !important; }
+
+  /* ⑤ Show the print-only headers inside each panel */
+  #print-header, #print-header-bldg { display: flex !important; flex-direction: column !important; }
+
+  /* ⑥ Panel visibility + page assignment */
+  #ctn  { display: block !important; page: ctn-page; }
+  #bldg { display: block !important; page: bldg-page; break-before: page; }
+  #dmg  { display: none  !important; }
+
+  /* ⑦ Shell — full width, no padding */
+  .shell { max-width: 100%; padding: 0; }
+  .mc { box-shadow: none; }
+
+  /* ⑧ Container schedule — scale to fit portrait 11×17 */
+  #ctn { zoom: 0.76; }
+
+  /* ⑨ Building matrix — remove horizontal scroll, scale up to fill landscape */
+  #bldg-grid div[style*="overflow-x:auto"] { overflow: visible !important; }
+  #bldg-grid div[style*="min-width"]       { min-width: 0 !important; }
+  #bldg { zoom: 1.1; }
+}
 .panel.on { display: block; }
 
 /* Badges */
 .bdg { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
 .b-DEL  { background: var(--del-bg);   color: var(--del-text);  }
+.b-YARD { background: var(--yard-bg);  color: var(--yard-text); }
 .b-RAIL { background: var(--rail-bg);  color: var(--rail-text); }
 .b-PORT { background: var(--port-bg);  color: var(--port-text); }
 .b-ENR  { background: var(--enr-bg);   color: var(--enr-text);  }
@@ -69,13 +117,13 @@ body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'S
 
 /* Status dots */
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.d-DEL  { background: #1A5C47; }
-.d-RAIL { background: #AA4010; }
-.d-PORT { background: #5A4AAA; }
-.d-ENR  { background: #2A5AAA; }
-.d-LDD  { background: #2A7A3A; }
-.d-LDG  { background: #888880; }
-.d-PROJ { background: #D4890A; }
+.d-DEL  { background: #1B5E20; }
+.d-RAIL { background: #B71C1C; }
+.d-PORT { background: #4A148C; }
+.d-ENR  { background: #0D47A1; }
+.d-LDD  { background: #E65100; }
+.d-LDG  { background: #F57F17; }
+.d-PROJ { background: #546E7A; }
 .d-scope { background: #CCCCCC; }
 
 /* Legend */
@@ -85,7 +133,7 @@ body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, 'S
 /* Tables */
 .tw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; overflow-x: auto; background: var(--surface); margin-bottom: 12px; }
 table { width: 100%; border-collapse: collapse; font-size: 11px; }
-th { text-align: left; padding: 8px 10px; color: var(--text-3); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); background: var(--bg); white-space: nowrap; }
+th { text-align: left; padding: 8px 10px; color: #fff; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); background: var(--accent); white-space: nowrap; }
 td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--bg); }
@@ -224,14 +272,60 @@ tbody tr:hover td { background: var(--bg); }
 </div>
 
 <!-- TABS -->
-<div class="tabs">
-  <button class="tab on" onclick="sw('ctn',this)">Container schedule</button>
-  <button class="tab" onclick="sw('bldg',this)">Building matrix</button>
-  <button class="tab" onclick="sw('dmg',this)">Damage / open items</button>
+<div class="tabs-row">
+  <div class="tabs">
+    <button class="tab on" onclick="sw('ctn',this)">Container schedule</button>
+    <button class="tab" onclick="sw('bldg',this)">Building matrix</button>
+    <button class="tab" onclick="sw('dmg',this)">Damage / open items</button>
+  </div>
+  <a class="tab-link" href="https://1843288studiosnaiderochicag-my.sharepoint.com/:f:/g/personal/edwin_210designhouse_com/IgA8-9aJXD6SS7R_ve7hTcIuASbguxIJ_fdEFpX_kXR-u-k?e=EB1h4q" target="_blank" rel="noopener">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Shared Documents
+  </a>
+  <button class="btn-print" onclick="printDashboard()">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Print Report
+  </button>
 </div>
 
 <!-- ===== CONTAINER SCHEDULE ===== -->
 <div id="ctn" class="panel on">
+
+  <!-- Print-only header for page 1 — hidden on screen, shown in print inside #ctn -->
+  <div id="print-header" style="display:none;flex-direction:column;margin-bottom:16px;">
+    <!-- Topbar replica: matches the website header exactly -->
+    <div style="display:flex;flex-direction:column;align-items:stretch;padding-bottom:16px;margin-bottom:14px;border-bottom:1px solid rgba(0,0,0,0.10);">
+      <!-- Row 1: Dandamudi's INC centered -->
+      <div style="display:flex;justify-content:center;align-items:center;padding-bottom:28px;">
+        <img src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:26px;width:auto;">
+      </div>
+      <!-- Row 2: 210 logo + title | date pill + week + sketch -->
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <img src="210 Black.PNG" alt="210 Design House" style="height:71px;width:auto;">
+          <div>
+            <div style="font-size:20px;font-weight:500;letter-spacing:-.3px;color:#1A1A18;">OMM · Optima McDowell Mountain</div>
+            <div class="print-page-sub" style="font-size:13px;color:#5C5C58;margin-top:4px;">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+            <span class="print-date-pill" style="font-size:13px;background:#1A3A2A;color:#fff;padding:4px 10px;border-radius:99px;"></span>
+            <span class="print-week-text" style="font-size:13px;font-weight:500;color:#5C5C58;padding-right:10px;"></span>
+          </div>
+          <img src="black sketch.png" alt="Sketch" style="height:89px;width:auto;">
+        </div>
+      </div>
+    </div>
+    <!-- Tabs replica: Container schedule active -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:3px;border-radius:8px;">
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;background:#1A3A2A;color:#fff;">Container schedule</span>
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Building matrix</span>
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Damage / open items</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Single row: [Left col] | [Donut] | [Next Up compact] | [Calendar wide] -->
   <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
@@ -285,13 +379,19 @@ tbody tr:hover td { background: var(--bg); }
   <!-- Route pipeline -->
   <div class="route-pipeline">
     <div class="rp-step">
-      <div class="rp-icon" style="background:#F0EFE8">🏭</div>
-      <div class="rp-name">Factory IT</div>
+      <div class="rp-icon" style="background:#FEF5E7">🏭</div>
+      <div class="rp-name">Factory</div>
+      <div id="rp-PROJ" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#F0EFE8">📦</div>
+      <div class="rp-name">Loading</div>
       <div id="rp-LDG" class="rp-val"></div>
     </div>
     <div class="rp-line"></div>
     <div class="rp-step">
-      <div class="rp-icon" style="background:#E8F0EB">📦</div>
+      <div class="rp-icon" style="background:#E8F0EB">📫</div>
       <div class="rp-name">Loaded</div>
       <div id="rp-LDD" class="rp-val"></div>
     </div>
@@ -310,8 +410,14 @@ tbody tr:hover td { background: var(--bg); }
     <div class="rp-line"></div>
     <div class="rp-step">
       <div class="rp-icon" style="background:#FAF0E8">🚂</div>
-      <div class="rp-name">Phoenix RR</div>
+      <div class="rp-name">On Rail</div>
       <div id="rp-RAIL" class="rp-val"></div>
+    </div>
+    <div class="rp-line"></div>
+    <div class="rp-step">
+      <div class="rp-icon" style="background:#E0F4F5">🏪</div>
+      <div class="rp-name">In Yard</div>
+      <div id="rp-YARD" class="rp-val"></div>
     </div>
     <div class="rp-line"></div>
     <div class="rp-step">
@@ -321,7 +427,12 @@ tbody tr:hover td { background: var(--bg); }
     </div>
   </div>
 
-  <!-- Container table -->
+  <!-- Container table legend + table -->
+  <div class="leg" style="margin-bottom:10px;gap:14px;flex-wrap:wrap;">
+    <span class="leg-i"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#FFF3E0;border:2px solid #D4890A;vertical-align:middle;margin-right:5px;"></span>Next Container Delivering</span>
+    <span class="leg-i"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#EAF4FB;border:2px solid #1976D2;vertical-align:middle;margin-right:5px;"></span>Containers Loading</span>
+    <span class="leg-i"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#F0EFEB;border:1px solid #ccc;vertical-align:middle;margin-right:5px;opacity:.7;"></span>Delivered</span>
+  </div>
   <div class="tw">
     <table>
       <thead><tr>
@@ -340,16 +451,60 @@ tbody tr:hover td { background: var(--bg); }
 
 <!-- ===== BUILDING MATRIX ===== -->
 <div id="bldg" class="panel">
-  <div class="leg" style="margin-bottom:12px;flex-wrap:wrap;gap:6px 14px;">
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1A5C47;vertical-align:middle;margin-right:5px;"></span>Delivered</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#22735C;vertical-align:middle;margin-right:5px;"></span>Phoenix RR</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#35A082;vertical-align:middle;margin-right:5px;"></span>Port (LAX)</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#44B594;vertical-align:middle;margin-right:5px;"></span>Sea Freight</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#62C8A8;vertical-align:middle;margin-right:5px;"></span>Loaded</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#90D8C0;vertical-align:middle;margin-right:5px;"></span>Loading</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#A8D4CE;vertical-align:middle;margin-right:5px;"></span>Projected</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#C8B97C;vertical-align:middle;margin-right:5px;"></span>Combo Unit</span>
-    <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#E0DDD8;border:1px solid #ccc;vertical-align:middle;margin-right:5px;"></span>Not in Scope</span>
+
+  <!-- Print-only header for page 2 — hidden on screen, shown in print inside #bldg -->
+  <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:16px;">
+    <!-- Topbar replica -->
+    <div style="display:flex;flex-direction:column;align-items:stretch;padding-bottom:16px;margin-bottom:14px;border-bottom:1px solid rgba(0,0,0,0.10);">
+      <!-- Row 1: Dandamudi's INC centered -->
+      <div style="display:flex;justify-content:center;align-items:center;padding-bottom:28px;">
+        <img src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:26px;width:auto;">
+      </div>
+      <!-- Row 2: 210 logo + title | date pill + week + sketch -->
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <img src="210 Black.PNG" alt="210 Design House" style="height:71px;width:auto;">
+          <div>
+            <div style="font-size:20px;font-weight:500;letter-spacing:-.3px;color:#1A1A18;">OMM · Optima McDowell Mountain</div>
+            <div class="print-page-sub" style="font-size:13px;color:#5C5C58;margin-top:4px;">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+            <span class="print-date-pill" style="font-size:13px;background:#1A3A2A;color:#fff;padding:4px 10px;border-radius:99px;"></span>
+            <span class="print-week-text" style="font-size:13px;font-weight:500;color:#5C5C58;padding-right:10px;"></span>
+          </div>
+          <img src="black sketch.png" alt="Sketch" style="height:89px;width:auto;">
+        </div>
+      </div>
+    </div>
+    <!-- Tabs replica: Building matrix active -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:3px;border-radius:8px;">
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Container schedule</span>
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;background:#1A3A2A;color:#fff;">Building matrix</span>
+        <span style="padding:6px 14px;font-size:12px;font-weight:500;border-radius:6px;color:#5C5C58;">Damage / open items</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+    <!-- Status legend (left) -->
+    <div class="leg" style="margin-bottom:0;flex-wrap:wrap;gap:6px 14px;">
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#90A4AE;vertical-align:middle;margin-right:5px;"></span>Factory</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFB300;vertical-align:middle;margin-right:5px;"></span>Loading</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#F57C00;vertical-align:middle;margin-right:5px;"></span>Loaded</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1976D2;vertical-align:middle;margin-right:5px;"></span>Sea Freight</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#7B1FA2;vertical-align:middle;margin-right:5px;"></span>Port (LAX)</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#C62828;vertical-align:middle;margin-right:5px;"></span>On Rail</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#00838F;vertical-align:middle;margin-right:5px;"></span>In Yard</span>
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2E7D32;vertical-align:middle;margin-right:5px;"></span>Delivered</span>
+    </div>
+    <!-- Structural indicators (right) -->
+    <div class="leg" style="margin-bottom:0;gap:10px;flex-shrink:0;">
+      <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#D4890A;vertical-align:middle;margin-right:5px;"></span>Combo Unit</span>
+      <span class="leg-i"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:var(--scope-bg);border:1px solid #ccc;vertical-align:middle;margin-right:5px;"></span>Not in Scope</span>
+    </div>
   </div>
   <div id="bldg-grid"></div>
   <div id="bldg-sidebar" style="display:none;"></div>
@@ -432,13 +587,13 @@ const UPDATED = "—";
 // DATA_END
 
 // ── STATUS CONFIG ────────────────────────────────────────────────
-const STATUS_RANK   = { DEL:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
-const STATUS_COLORS = { DEL:'#1A5C47', RAIL:'#22735C', PORT:'#35A082', ENR:'#44B594', LDD:'#62C8A8', LDG:'#90D8C0', PROJ:'#A8D4CE' };
-const STATUS_DOTS   = { DEL:'#1A5C47', RAIL:'#AA4010', PORT:'#5A4AAA', ENR:'#2A5AAA', LDD:'#2A7A3A', LDG:'#888880', PROJ:'#D4890A' };
-const STATUS_LABELS = { DEL:'Delivered', RAIL:'Phoenix RR', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Projected' };
-const STATUS_BADGE  = { DEL:'b-DEL', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
-const STATUS_ORDER  = ['DEL','RAIL','PORT','ENR','LDD','LDG','PROJ'];
-const PIPELINE_IDS  = ['DEL','RAIL','PORT','ENR','LDD','LDG'];
+const STATUS_RANK   = { DEL:8, YARD:7, RAIL:6, PORT:5, ENR:4, LDD:3, LDG:2, PROJ:1 };
+const STATUS_COLORS = { DEL:'#2E7D32', YARD:'#00838F', RAIL:'#C62828', PORT:'#7B1FA2', ENR:'#1976D2', LDD:'#F57C00', LDG:'#FFB300', PROJ:'#90A4AE' };
+const STATUS_DOTS   = { DEL:'#1B5E20', YARD:'#006064', RAIL:'#B71C1C', PORT:'#4A148C', ENR:'#0D47A1', LDD:'#E65100', LDG:'#F57F17', PROJ:'#546E7A' };
+const STATUS_LABELS = { DEL:'Delivered', YARD:'In Yard', RAIL:'On Rail', PORT:'Port (LAX)', ENR:'Sea Freight', LDD:'Loaded', LDG:'Loading', PROJ:'Factory' };
+const STATUS_BADGE  = { DEL:'b-DEL', YARD:'b-YARD', RAIL:'b-RAIL', PORT:'b-PORT', ENR:'b-ENR', LDD:'b-LDD', LDG:'b-LDG', PROJ:'b-PROJ' };
+const STATUS_ORDER  = ['DEL','YARD','RAIL','PORT','ENR','LDD','LDG','PROJ'];
+const PIPELINE_IDS  = ['DEL','YARD','RAIL','PORT','ENR','LDD','LDG','PROJ'];
 
 const TRANSIT_REF = [
   { label:'Leg 1: Italy → Colombia',  value:'~3 wks' },
@@ -450,7 +605,8 @@ const TRANSIT_REF = [
 
 function normStatus(code) {
   const c = (code || 'PROJ').toString().trim().toUpperCase();
-  return STATUS_RANK[c] ? c : 'PROJ';
+  const alias = { TRAIN:'RAIL' };   // YARD is its own status — no alias needed
+  return alias[c] || (STATUS_RANK[c] ? c : 'PROJ');
 }
 function today() { return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 function todayISO() { return new Date().toISOString().slice(0,10); }
@@ -514,20 +670,27 @@ if (UPDATED && UPDATED !== '—') {
     counts[s] = (counts[s]||0) + 1;
   });
 
-  // Donut
+  // Donut — 2 colors only: delivered vs not yet delivered
   const canvas = document.getElementById('status-chart');
   const ctx = canvas.getContext('2d');
   const cx = 80, cy = 80, r = 68, ir = 40;
+  const delN  = counts['DEL'] || 0;
+  const pendN = total - delN;
+  const DONUT_DEL  = '#1A5C47';  // dark teal — delivered
+  const DONUT_REM  = '#A8D4CE';  // light mint — remaining
+  const donutSlices = [
+    { n: pendN, color: DONUT_REM },
+    { n: delN,  color: DONUT_DEL },
+  ];
   let angle = -Math.PI / 2;
-  STATUS_ORDER.forEach(s => {
-    const n = counts[s] || 0;
-    if (!n) return;
-    const slice = (n / total) * Math.PI * 2;
+  donutSlices.forEach(sl => {
+    if (!sl.n) return;
+    const slice = (sl.n / total) * Math.PI * 2;
     ctx.beginPath();
     ctx.arc(cx, cy, r, angle, angle + slice);
     ctx.arc(cx, cy, ir, angle + slice, angle, true);
     ctx.closePath();
-    ctx.fillStyle = STATUS_COLORS[s];
+    ctx.fillStyle = sl.color;
     ctx.fill();
     angle += slice;
   });
@@ -540,13 +703,11 @@ if (UPDATED && UPDATED !== '—') {
   ctx.fillStyle = '#9A9A94';
   ctx.fillText('ctns', cx, cy + 11);
 
-  // Donut legend — always show Projected + Delivered
+  // Donut legend — Remaining vs Delivered
   const legend = document.getElementById('donut-legend');
-  const projCount = counts['PROJ'] || 0;
-  const delCount  = counts['DEL']  || 0;
   const legendRows = [
-    { color: STATUS_COLORS['PROJ'], label: 'Projected', n: projCount },
-    { color: STATUS_COLORS['DEL'],  label: 'Delivered',  n: delCount  },
+    { color: DONUT_REM, label: 'Remaining', n: pendN },
+    { color: DONUT_DEL, label: 'Delivered', n: delN  },
   ];
   legend.innerHTML = legendRows.map(row =>
     `<div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:3px 0;">
@@ -565,9 +726,9 @@ if (UPDATED && UPDATED !== '—') {
     const n = counts[s] || 0;
     const color = STATUS_DOTS[s];
     if (n > 0) {
-      el.innerHTML = `<span style="margin-top:5px;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:${STATUS_COLORS[s]}44;color:${color}">${STATUS_LABELS[s]} &middot; ${n}</span>`;
+      el.innerHTML = `<span style="margin-top:5px;display:inline-flex;flex-direction:column;align-items:center;font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:${STATUS_COLORS[s]}44;color:${color};line-height:1.2;">${STATUS_LABELS[s]}<span style="font-size:11px;font-weight:800;margin-top:1px;">${n}</span></span>`;
     } else {
-      el.innerHTML = `<span style="margin-top:5px;display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;background:#F0EFE8;color:#9A9A94">— &middot; 0</span>`;
+      el.innerHTML = `<span style="margin-top:5px;display:inline-flex;flex-direction:column;align-items:center;font-size:10px;padding:3px 10px;border-radius:99px;background:#F0EFE8;color:#9A9A94;line-height:1.2;">${STATUS_LABELS[s]}<span style="font-size:11px;font-weight:800;margin-top:1px;">0</span></span>`;
     }
   });
 })();
@@ -698,7 +859,7 @@ renderCal();
     const dateMain = parts[0] || c.deliveryDate;
     const dateYear = parts[1] ? parts[1].trim() : '';
     html += `<div style="${border}display:flex;align-items:center;gap:12px;padding:10px 4px;">
-      ${dayOfWeek ? `<div style="background:${sc};color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 8px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;">${dayOfWeek}</div>` : ''}
+      ${dayOfWeek ? `<div style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 8px;border-radius:5px;flex-shrink:0;min-width:36px;text-align:center;">${dayOfWeek}</div>` : ''}
       <div style="flex-shrink:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.1;">${dateMain}</div>
         <div style="font-size:9px;color:var(--text-3);">${dateYear}</div>
@@ -724,25 +885,51 @@ function renderContainers() {
     tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-3);padding:20px">Run update_dashboard.py to load data from Excel</td></tr>';
     return;
   }
+
+  // Find the single "next delivering" container — highest pipeline rank among non-DEL
+  const nonDel = CONTAINERS.filter(c => normStatus(c.status) !== 'DEL');
+  let nextNum = null;
+  if (nonDel.length) {
+    const best = nonDel.reduce((w, c) => {
+      const wr = STATUS_RANK[normStatus(w.status)] || 0;
+      const cr = STATUS_RANK[normStatus(c.status)] || 0;
+      return cr > wr ? c : w;
+    });
+    nextNum = best.num;
+  }
+
   tb.innerHTML = CONTAINERS.map(c => {
-    const s = normStatus(c.status);
-    const dot = STATUS_DOTS[s];
+    const s   = normStatus(c.status);
     const bdg = STATUS_BADGE[s];
-    return `<tr>
-      <td><span style="display:inline-flex;align-items:center;gap:5px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>${c.num}
-      </span></td>
-      <td><span class="bdg ${bdg}">${STATUS_LABELS[s]}</span></td>
-      <td>${c.week || '—'}</td>
-      <td style="color:var(--text-3)">${c.floors || '—'}</td>
-      <td>${c.loadDate || '—'}</td>
-      <td>${c.shipDate || '—'}</td>
-      <td style="color:var(--text-2)">${c.vessel1 || '—'}</td>
-      <td style="color:var(--text-2)">${c.vessel2 || '—'}</td>
-      <td>${c.etaLAX || '—'}</td>
-      <td>${c.etaPhoenix || '—'}</td>
-      <td style="font-weight:500">${c.deliveryDate || '—'}</td>
-      <td style="color:var(--text-3)">${c.installDate || '—'}</td>
+    const isDel  = s === 'DEL';
+    const isNext = c.num === nextNum;
+    const isLdg  = s === 'LDG';
+
+    // Row style priority: next (orange) > loading (blue) > delivered (grey)
+    let rowStyle = '';
+    let textStyle = '';
+    if (isNext) {
+      rowStyle = 'background:#FFF3E0;border-left:3px solid #D4890A;';
+    } else if (isLdg) {
+      rowStyle = 'background:#EAF4FB;border-left:3px solid #1976D2;';
+    } else if (isDel) {
+      rowStyle = 'background:#F0EFEB;';
+      textStyle = 'color:#AAAAAA;';
+    }
+
+    return `<tr style="${rowStyle}${textStyle}">
+      <td style="font-weight:600;${isNext?'color:#D4890A;':isDel?'color:#BBBBBB;':''}">${c.num}</td>
+      <td><span class="bdg ${bdg}" style="${isDel?'opacity:.55;':''}">${STATUS_LABELS[s]}</span></td>
+      <td style="${textStyle}">${c.week || '—'}</td>
+      <td style="color:${isDel?'#BBBBBB':'var(--text-3)'};">${c.floors || '—'}</td>
+      <td style="${textStyle}">${c.loadDate || '—'}</td>
+      <td style="${textStyle}">${c.shipDate || '—'}</td>
+      <td style="color:${isDel?'#BBBBBB':'var(--text-2)'};">${c.vessel1 || '—'}</td>
+      <td style="color:${isDel?'#BBBBBB':'var(--text-2)'};">${c.vessel2 || '—'}</td>
+      <td style="${textStyle}">${c.etaLAX || '—'}</td>
+      <td style="${textStyle}">${c.etaPhoenix || '—'}</td>
+      <td style="font-weight:${isDel?'400':'500'};${textStyle}">${c.deliveryDate || '—'}</td>
+      <td style="${textStyle}">${c.installDate || '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -762,9 +949,10 @@ function renderBuilding() {
     return c ? normStatus(c.status) : 'PROJ';
   }
   function unitStatus(u) {
-    if (!u.inScope || !u.ctns || !u.ctns.length) return 'PROJ';
-    return u.ctns.map(n => ctnStatus(n))
-      .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
+    if (!u.inScope || !u.components || !u.components.length) return 'PROJ';
+    const statuses = u.components.map(c => ctnStatus(c.container));
+    if (!statuses.length) return 'PROJ';
+    return statuses.reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w);
   }
 
   const byFloor = {};
@@ -790,10 +978,10 @@ function renderBuilding() {
   function roomRows(comps, uColor) {
     if (!comps.length) return `<div style="font-size:6.5px;color:var(--text-3);font-style:italic;padding:1px 0;">—</div>`;
     return comps.map(comp => {
-      const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
+      const cc = STATUS_COLORS[ctnStatus(comp.container)] || uColor;
       return `<div style="display:flex;align-items:center;gap:2px;padding:1px 0;border-top:1px solid rgba(0,0,0,0.06);min-width:0;overflow:hidden;">` +
-        `<span style="font-size:5.5px;font-weight:700;background:${cc};color:#fff;padding:0 2px;line-height:2;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>` +
-        `<span style="font-size:5.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>` +
+        `<span style="font-size:5.5px;font-weight:700;background:${cc};color:#fff;padding:0 2px;line-height:2;border-radius:2px;flex-shrink:0;">${comp.container}</span>` +
+        `<span style="font-size:5.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.room}</span>` +
         `</div>`;
     }).join('');
   }
@@ -814,10 +1002,10 @@ function renderBuilding() {
     h += `<div style='margin-bottom:7px;'><span style='font-size:8px;background:${sColor};color:#fff;padding:1px 7px;border-radius:3px;font-weight:700;'>${STATUS_LABELS[status]||status}</span></div>`;
     if (comps.length) {
       h += comps.map(comp => {
-        const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
+        const cc = STATUS_COLORS[ctnStatus(comp.container)] || uColor;
         return `<div style='display:flex;align-items:center;gap:5px;padding:3px 0;border-top:1px solid rgba(0,0,0,0.08);'>` +
-          `<span style='font-size:9px;font-weight:700;background:${cc};color:#fff;padding:1px 5px;border-radius:3px;flex-shrink:0;'>${comp.ctn}</span>` +
-          `<span style='font-size:10px;color:var(--text-2);'>${comp.name}</span>` +
+          `<span style='font-size:9px;font-weight:700;background:${cc};color:#fff;padding:1px 5px;border-radius:3px;flex-shrink:0;'>CTN ${comp.container}</span>` +
+          `<span style='font-size:10px;color:var(--text-2);'>${comp.room}</span>` +
           `</div>`;
       }).join('');
     } else {
@@ -872,7 +1060,7 @@ function renderBuilding() {
 
       if (!u.inScope) {
         cells.push(
-          `<div style="background:var(--scope-bg);min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;border-top:2px solid rgba(0,0,0,0.07);">` +
+          `<div style="background:var(--scope-bg);min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:76px;border-top:2px solid rgba(0,0,0,0.07);">` +
           `<div style="font-size:9px;font-weight:700;color:var(--text-3);opacity:.5;text-align:center;">${String(pos).padStart(2,'0')}</div>` +
           `<div style="font-size:5.5px;color:var(--text-3);opacity:.35;margin-top:1px;">out</div>` +
           `</div>`
@@ -889,15 +1077,17 @@ function renderBuilding() {
           .filter(cu => cu.ctns && cu.ctns.length)
           .map(cu => unitStatus(cu))
           .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w, 'PROJ');
-        const uColor = STATUS_COLORS[grpStatus] || '#A8D4CE';
-        const uDot   = STATUS_DOTS[grpStatus]   || '#D4890A';
+        const uColor    = STATUS_COLORS[grpStatus] || '#90A4AE';
+        const COMBO_CLR = '#D4890A';  // always orange — independent of unit status
 
         cells.push(
           `<div data-popup="${makePopup(k, true, grpStatus, allRooms, uColor, '')}" ` +
           `style="grid-column:span ${span};background:var(--surface);padding:4px;border-top:3px solid ${uColor};` +
-          `box-shadow:inset 0 0 0 2px ${uDot};min-width:0;overflow:hidden;max-height:76px;cursor:default;">` +
+          `box-shadow:inset 0 0 0 2px ${COMBO_CLR};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
           `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k}</div>` +
-          `<div style="font-size:5px;line-height:1;font-weight:700;color:${uDot};background:${uDot}22;border-radius:2px;padding:1px 3px;margin-bottom:2px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">COMBO</div>` +
+          `<div style="line-height:0;margin-bottom:3px;">` +
+          `<span style="font-size:5px;line-height:1.6;font-weight:700;color:${COMBO_CLR};background:${COMBO_CLR}22;border:1px solid ${COMBO_CLR}66;border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">COMBO</span>` +
+          `</div>` +
           roomRows(allRooms, uColor) +
           `</div>`
         );
@@ -910,9 +1100,11 @@ function renderBuilding() {
 
       cells.push(
         `<div data-popup="${makePopup(String(u.unit), false, us, u.components||[], uColor, uType)}" ` +
-        `style="background:var(--surface);padding:4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;max-height:76px;cursor:default;">` +
+        `style="background:var(--surface);padding:4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
         `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>` +
-        (uType ? `<div style="font-size:5px;font-weight:600;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${uType}</div>` : `<div style="margin-bottom:2px;"></div>`) +
+        `<div style="line-height:0;margin-bottom:3px;">` +
+        (uType ? `<span style="font-size:5px;line-height:1.6;font-weight:700;color:var(--text-3);background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">${uType}</span>` : '') +
+        `</div>` +
         roomRows(u.components||[], uColor) +
         `</div>`
       );
@@ -1055,6 +1247,45 @@ renderContainers();
 renderBuilding();
 renderUnitDropdown();
 renderItems();
+
+// ── PRINT ────────────────────────────────────────────────────────
+function printDashboard() {
+  const d = new Date();
+  const stamp = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
+    ' at ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  document.body.setAttribute('data-print-date', stamp);
+
+  // Populate all print-only headers with live date / subtitle content
+  const todayPill   = document.getElementById('today-pill');
+  const todayWeek   = document.getElementById('today-week');
+  const pageSub     = document.getElementById('page-sub');
+  const pillText    = todayPill ? todayPill.textContent : '';
+  const weekText    = todayWeek ? todayWeek.textContent : '';
+  const subText     = pageSub  ? pageSub.textContent   : 'Scottsdale, AZ · Container Dashboard';
+  document.querySelectorAll('.print-date-pill').forEach(el => el.textContent = pillText);
+  document.querySelectorAll('.print-week-text').forEach(el  => el.textContent = weekText);
+  document.querySelectorAll('.print-page-sub').forEach(el   => el.textContent = subText);
+
+  // Show a brief toast reminding user not to change paper settings
+  let toast = document.getElementById('print-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'print-toast';
+    Object.assign(toast.style, {
+      position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+      background:'#1A3A2A', color:'#fff', fontSize:'12px', fontWeight:'500',
+      padding:'10px 20px', borderRadius:'99px', zIndex:'99999',
+      boxShadow:'0 4px 16px rgba(0,0,0,0.25)', pointerEvents:'none',
+      transition:'opacity .3s',
+    });
+    document.body.appendChild(toast);
+  }
+  toast.textContent = '11 × 17 Landscape is pre-set — just click Print in the dialog.';
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+
+  setTimeout(() => window.print(), 300);
+}
 </script>
 </body>
 </html>

@@ -74,6 +74,21 @@ COMP_COLS = [
     ("Bed 2",     37, 38),  ("Bed 3",     39, 40),  ("Bed 4",    41, 42),
 ]
 
+def fmt_combo_type(val):
+    """Format a combo type code, preserving 2-digit unit numbers.
+    Excel stores e.g. '6019.20' as the float 6019.2, losing the trailing zero.
+    We reconstruct by treating each decimal segment as a 2-digit unit number.
+    Strings (e.g. '3005.06.07') pass through unchanged."""
+    if val is None:
+        return ""
+    if isinstance(val, float):
+        int_part = int(val)
+        dec_raw  = round((val - int_part) * 100)   # e.g. 6019.2 → 20
+        if dec_raw == 0:
+            return str(int_part)
+        return f"{int_part}.{dec_raw:02d}"          # e.g. "6019.20", "7009.10"
+    return str(val).strip()
+
 def read_units(ws):
     units = []
     for row in ws.iter_rows(min_row=11, values_only=True):
@@ -88,17 +103,16 @@ def read_units(ws):
                 if si >= len(row) or ci >= len(row):
                     continue
                 if row[si] == "YES" and isinstance(row[ci], (int, float)):
-                    comps.append({"name": name, "ctn": int(row[ci])})
-        ctns = sorted(set(c["ctn"] for c in comps))
+                    comps.append({"room": name, "container": int(row[ci])})
+        is_combo = str(row[4]).strip().upper() == "YES" if row[4] else False
         units.append({
             "floor":      row[1],
             "unit":       unit_num,
             "inScope":    in_scope,
-            "combo":      row[4] if row[4] and row[4] != "NO" else None,
-            "type":       row[5] or None,
+            "combo":      is_combo,
+            "type":       fmt_combo_type(row[5]),
             "status":     status,
             "components": comps,
-            "ctns":       ctns,
         })
     return units
 
