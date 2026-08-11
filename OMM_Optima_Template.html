@@ -188,70 +188,105 @@ tbody tr:hover td { background: var(--bg); }
 .empty-state .big { font-size: 28px; margin-bottom: 8px; }
 
 /* ── Building matrix print-mode (class toggled by printDashboard before measuring) ── */
-/* All fonts scaled +50%; floor label scaled +100%. !important overrides inline styles. */
 
-/* Unit card internals */
+/* ── Unit number + tag on the same line ── */
+#bldg.bldg-print .bldg-title-area {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 6px !important;
+  overflow: hidden !important;
+}
+#bldg.bldg-print .bldg-title-area .bldg-title {
+  flex: 1 !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#bldg.bldg-print .bldg-title-area .bldg-pill-text {
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+}
+
+/* ── Unit card text — scale ×2 ── */
 #bldg.bldg-print .bldg-title {
-  font-size: 17px !important;
-  white-space: normal !important;
+  font-size: 44px !important;
 }
 #bldg.bldg-print .bldg-pill-text {
-  font-size: 11px !important;
-  line-height: 1.8 !important;
+  font-size: 30px !important;
+  line-height: 1.6 !important;
 }
 #bldg.bldg-print .bldg-rooms {
-  margin-top: 3px;
+  margin-top: 6px;
 }
 #bldg.bldg-print .bldg-room-entry {
-  padding: 3px 0 !important;
+  padding: 6px 0 !important;
   min-width: 0;
 }
 #bldg.bldg-print .bldg-ctn-badge {
-  font-size: 12px !important;
-  padding: 0 4px !important;
-  line-height: 1.8 !important;
+  font-size: 32px !important;
+  padding: 0 8px !important;
+  line-height: 1.6 !important;
 }
 #bldg.bldg-print .bldg-room-name {
-  font-size: 12px !important;
+  font-size: 32px !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
 #bldg.bldg-print .bldg-empty-dash {
-  font-size: 10px !important;
+  font-size: 26px !important;
 }
 
-/* Column header (unit position numbers) — +50% */
+/* ── Column header (unit position numbers) — keep at 27px (looks great) ── */
 #bldg.bldg-print .bldg-col-hdr {
-  font-size: 17px !important;
+  font-size: 27px !important;
 }
 
-/* Floor row label ("FL 6" etc.) — +100% */
+/* ── Floor row label ("FL 5" etc.) — ×2 from 27px = 54px ── */
 #bldg.bldg-print .bldg-floor-lbl {
-  font-size: 18px !important;
+  font-size: 54px !important;
 }
 
-/* Out-of-scope cells */
+/* ── Floor label column — must widen to fit 54px vertical text ── */
+#bldg.bldg-print .bldg-lbl-col {
+  width: 60px !important;
+}
+
+/* ── Out-of-scope cells — scale ×2 ── */
 #bldg.bldg-print .bldg-oos-num {
-  font-size: 14px !important;
+  font-size: 36px !important;
 }
 #bldg.bldg-print .bldg-oos-tag {
-  font-size: 8px !important;
+  font-size: 22px !important;
 }
 
-/* Status legend (colour key below tabs) — +50% */
+/* ── Floor row grid — allow cells to paint past container bounds ── */
+#bldg.bldg-print .bldg-floor-grid {
+  overflow: visible !important;
+}
+
+/* ── Original legend — hidden in print; copy lives in #print-header-bldg ── */
 #bldg.bldg-print .leg {
-  font-size: 15px !important;
-}
-#bldg.bldg-print .leg-i > span:first-child {
-  width: 18px !important;
-  height: 18px !important;
+  display: none !important;
 }
 
-/* Tab-strip labels in #print-header-bldg — +50% */
-#bldg.bldg-print #print-header-bldg span {
-  font-size: 17px !important;
-  padding: 6px 16px !important;
+/* ── Print-header legend — scale ×2 from original 10px ── */
+#bldg.bldg-print .print-bldg-legend {
+  font-size: 40px !important;
+}
+#bldg.bldg-print .print-bldg-legend .leg-i > span:first-child {
+  width: 28px !important;
+  height: 28px !important;
+  margin-right: 8px !important;
+}
+
+/* ── Tab-strip labels — scale ×2 from original 11px ── */
+#bldg.bldg-print #print-header-bldg > div > div:first-child span {
+  font-size: 44px !important;
+  padding: 10px 22px !important;
 }
 
 @media (max-width: 768px) {
@@ -519,12 +554,28 @@ tbody tr:hover td { background: var(--bg); }
 <!-- ===== BUILDING MATRIX ===== -->
 <div id="bldg" class="panel">
 
-  <!-- Print-only label for page 2 — tabs only, no topbar, maximises matrix space -->
+  <!-- Print-only label for page 2 — tabs on left, legend on right, maximises matrix space -->
   <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:10px;">
-    <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:2px;border-radius:6px;width:fit-content;">
-      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Container schedule</span>
-      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;background:#1A3A2A;color:#fff;">Building matrix</span>
-      <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Damage / open items</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <!-- Active tab strip -->
+      <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:2px;border-radius:6px;flex-shrink:0;">
+        <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Container schedule</span>
+        <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;background:#1A3A2A;color:#fff;">Building matrix</span>
+        <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Damage / open items</span>
+      </div>
+      <!-- Legend — print-only copy, sits to the right of the tab strip -->
+      <div class="print-bldg-legend" style="display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;">
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#90A4AE;vertical-align:middle;margin-right:4px;"></span>Factory</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#FFB300;vertical-align:middle;margin-right:4px;"></span>Loading</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#F57C00;vertical-align:middle;margin-right:4px;"></span>Loaded</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#1976D2;vertical-align:middle;margin-right:4px;"></span>Sea Freight</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#7B1FA2;vertical-align:middle;margin-right:4px;"></span>Port (LAX)</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#C62828;vertical-align:middle;margin-right:4px;"></span>On Rail</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#00838F;vertical-align:middle;margin-right:4px;"></span>In Yard</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2E7D32;vertical-align:middle;margin-right:4px;"></span>Delivered</span>
+        <span class="leg-i"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#D4890A;vertical-align:middle;margin-right:4px;"></span>Combo Unit</span>
+        <span class="leg-i"><span style="display:inline-block;width:13px;height:13px;border-radius:3px;background:var(--scope-bg);border:1px solid #ccc;vertical-align:middle;margin-right:4px;"></span>Not in Scope</span>
+      </div>
     </div>
   </div>
 
@@ -1069,7 +1120,7 @@ function renderBuilding() {
   let html = `<div style="overflow-x:auto;">` +
     `<div style="min-width:${minW}px;">` +
     `<div style="position:sticky;top:0;z-index:4;display:flex;align-items:stretch;margin-bottom:4px;">` +
-    `<div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:${HDR};border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>` +
+    `<div class="bldg-lbl-col" style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:${HDR};border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>` +
     `<div style="flex:1;min-width:0;background:${HDR};border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">` +
     `<div style="display:grid;grid-template-columns:${gridCols};gap:4px;background:${HDR};">${numHdr}</div>` +
     `</div></div>`;
@@ -1125,9 +1176,9 @@ function renderBuilding() {
           `<div class="bldg-cell" data-popup="${makePopup(k, true, grpStatus, allRooms, uColor, '')}" ` +
           `style="grid-column:span ${span};background:var(--surface);padding:4px;border-top:3px solid ${uColor};` +
           `box-shadow:inset 0 0 0 2px ${COMBO_CLR};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
-          `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k}</div>` +
-          `<div style="line-height:0;margin-bottom:3px;">` +
-          `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:${COMBO_CLR};background:${COMBO_CLR}22;border:1px solid ${COMBO_CLR}66;border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">COMBO</span>` +
+          `<div class="bldg-title-area">` +
+          `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${k}</div>` +
+          `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:${COMBO_CLR};background:${COMBO_CLR}22;border:1px solid ${COMBO_CLR}66;border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;flex-shrink:0;">COMBO</span>` +
           `</div>` +
           roomRows(allRooms, uColor) +
           `</div>`
@@ -1142,9 +1193,9 @@ function renderBuilding() {
       cells.push(
         `<div class="bldg-cell" data-popup="${makePopup(String(u.unit), false, us, u.components||[], uColor, uType)}" ` +
         `style="background:var(--surface);padding:4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
-        `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>` +
-        `<div style="line-height:0;margin-bottom:3px;">` +
-        (uType ? `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:var(--text-3);background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">${uType}</span>` : '') +
+        `<div class="bldg-title-area">` +
+        `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">${u.unit}</div>` +
+        (uType ? `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:var(--text-3);background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;flex-shrink:0;">${uType}</span>` : '') +
         `</div>` +
         roomRows(u.components||[], uColor) +
         `</div>`
@@ -1153,11 +1204,11 @@ function renderBuilding() {
 
     html +=
       `<div style="display:flex;align-items:stretch;margin-bottom:4px;">` +
-      `<div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:${HDR};` +
+      `<div class="bldg-lbl-col" style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:${HDR};` +
       `display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">` +
       `<span class="bldg-floor-lbl" style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>` +
       `</div>` +
-      `<div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};` +
+      `<div class="bldg-floor-grid" style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};` +
       `gap:4px;background:var(--border);border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">` +
       cells.join('') +
       `</div></div>`;
@@ -1316,7 +1367,7 @@ function printDashboard() {
 
   // Widen unit card columns for print — wider cards fill landscape width better.
   // 25% wider than before (70 → 88 px minimum).
-  const PRINT_COL_MIN = 88;  // px
+  const PRINT_COL_MIN = 100;  // px — wider cards for 2× font sizes
   const bldgGrids = Array.from(bldg.querySelectorAll('[style*="grid-template-columns"]'));
   bldgGrids.forEach(el => {
     el.dataset.origCols = el.style.gridTemplateColumns;
