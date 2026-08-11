@@ -755,6 +755,8 @@ function renderBuilding() {
     return;
   }
 
+  const HDR = 'var(--accent)';  // original navy/dark — column / row headers
+
   function ctnStatus(num) {
     const c = CONTAINERS.find(x => x.num === num);
     return c ? normStatus(c.status) : 'PROJ';
@@ -772,7 +774,6 @@ function renderBuilding() {
   const allPos = [...new Set(UNITS.map(u => u.unit % 1000))].sort((a,b) => a - b);
   const N = allPos.length;
 
-  // posType: global column type label — from non-combo in-scope units only
   const posType = {};
   UNITS.forEach(u => {
     const p = u.unit % 1000;
@@ -783,35 +784,70 @@ function renderBuilding() {
   UNITS.forEach(u => { uMap[`${+u.floor}-${u.unit % 1000}`] = u; });
 
   const LBL_W = 28;
-  const gridCols = `repeat(${N}, minmax(44px, 1fr))`;
+  const gridCols = `repeat(${N}, minmax(40px, 1fr))`;
 
-  // ── Global two-row sticky header (type + unit #, one cell per position) ──
-  const typeHdr = allPos.map(pos =>
-    `<div style="padding:3px 2px;text-align:center;min-width:0;border-right:1px solid rgba(255,255,255,0.1);">
-      <div style="font-size:6.5px;font-weight:600;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${posType[pos]||'—'}</div>
-    </div>`
-  ).join('');
+  // ── Room rows — CSS truncation keeps cards at uniform height ──
+  function roomRows(comps, uColor) {
+    if (!comps.length) return `<div style="font-size:6.5px;color:var(--text-3);font-style:italic;padding:1px 0;">—</div>`;
+    return comps.map(comp => {
+      const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
+      return `<div style="display:flex;align-items:center;gap:2px;padding:1px 0;border-top:1px solid rgba(0,0,0,0.06);min-width:0;overflow:hidden;">` +
+        `<span style="font-size:5.5px;font-weight:700;background:${cc};color:#fff;padding:0 2px;line-height:2;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>` +
+        `<span style="font-size:5.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>` +
+        `</div>`;
+    }).join('');
+  }
 
+  // ── Popup HTML — single-quoted styles so it's safe inside data="" attr ──
+  function makePopup(label, isCombo, status, comps, uColor, unitType) {
+    const sColor = STATUS_COLORS[status] || uColor;
+    let h = `<div style='font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;'>${label}</div>`;
+    // Subtext row: COMBO badge (above status) for combos; type text for regular units
+    if (isCombo) {
+      h += `<div style='margin-bottom:5px;'><span style='font-size:8px;background:#D4890A22;color:#D4890A;padding:1px 7px;border-radius:3px;font-weight:700;border:1px solid #D4890A66;'>COMBO</span></div>`;
+    } else if (unitType && unitType !== label) {
+      h += `<div style='font-size:9px;color:var(--text-3);margin-bottom:5px;'>${unitType}</div>`;
+    } else {
+      h += `<div style='margin-bottom:5px;'></div>`;
+    }
+    // Status badge on its own row
+    h += `<div style='margin-bottom:7px;'><span style='font-size:8px;background:${sColor};color:#fff;padding:1px 7px;border-radius:3px;font-weight:700;'>${STATUS_LABELS[status]||status}</span></div>`;
+    if (comps.length) {
+      h += comps.map(comp => {
+        const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
+        return `<div style='display:flex;align-items:center;gap:5px;padding:3px 0;border-top:1px solid rgba(0,0,0,0.08);'>` +
+          `<span style='font-size:9px;font-weight:700;background:${cc};color:#fff;padding:1px 5px;border-radius:3px;flex-shrink:0;'>${comp.ctn}</span>` +
+          `<span style='font-size:10px;color:var(--text-2);'>${comp.name}</span>` +
+          `</div>`;
+      }).join('');
+    } else {
+      h += `<div style='font-size:9px;color:var(--text-3);font-style:italic;padding:4px 0;'>No containers yet</div>`;
+    }
+    return h;
+  }
+
+  // ── Single-row sticky column header — unit # only; type lives inside each card ──
+  // gap:4px on header grid MUST match data grid gap so column widths are identical
   const numHdr = allPos.map(pos =>
-    `<div style="padding:3px 2px 5px;text-align:center;min-width:0;border-right:1px solid rgba(255,255,255,0.1);">
-      <div style="font-size:11px;font-weight:700;color:#fff;">${String(pos).padStart(2,'0')}</div>
-    </div>`
+    `<div style="padding:4px 2px;text-align:center;min-width:0;">` +
+    `<div style="font-size:11px;font-weight:700;color:#fff;">${String(pos).padStart(2,'0')}</div>` +
+    `</div>`
   ).join('');
 
-  let html = `<div style="overflow-x:auto;">
-  <div style="position:sticky;top:0;z-index:4;display:flex;align-items:stretch;margin-bottom:6px;">
-    <div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:var(--accent);border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>
-    <div style="flex:1;min-width:0;background:var(--accent);border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">
-      <div style="display:grid;grid-template-columns:${gridCols};border-bottom:1px solid rgba(255,255,255,0.15);">${typeHdr}</div>
-      <div style="display:grid;grid-template-columns:${gridCols};">${numHdr}</div>
-    </div>
-  </div>`;
+  // min-width = floor-label + N*minColW + (N-1)*gap — forces scroll when viewport is too narrow
+  const minW = LBL_W + N * 40 + (N - 1) * 4;
+
+  let html = `<div style="overflow-x:auto;">` +
+    `<div style="min-width:${minW}px;">` +
+    `<div style="position:sticky;top:0;z-index:4;display:flex;align-items:stretch;margin-bottom:4px;">` +
+    `<div style="position:sticky;left:0;z-index:5;flex-shrink:0;width:${LBL_W}px;background:${HDR};border-radius:var(--radius-lg) 0 0 var(--radius-lg);"></div>` +
+    `<div style="flex:1;min-width:0;background:${HDR};border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">` +
+    `<div style="display:grid;grid-template-columns:${gridCols};gap:4px;background:${HDR};">${numHdr}</div>` +
+    `</div></div>`;
 
   floors.forEach(floor => {
     if (!byFloor[floor] || !byFloor[floor].length) return;
 
-    // ── Build combo groups for this floor ──
-    // comboGroups: typeKey → [unit objects], sorted by position
     const comboGroups = {};
     byFloor[floor].filter(u => u.inScope && u.combo).forEach(u => {
       const k = String(u.type);
@@ -820,99 +856,109 @@ function renderBuilding() {
     });
     Object.values(comboGroups).forEach(g => g.sort((a,b) => (a.unit%1000)-(b.unit%1000)));
 
-    // Positions absorbed into a combo's merged cell (all but the first in each group)
     const absorbed = new Set();
     Object.values(comboGroups).forEach(grp => grp.slice(1).forEach(u => absorbed.add(u.unit%1000)));
 
     const cells = [];
     allPos.forEach(pos => {
-      if (absorbed.has(pos)) return; // skip — already covered by a spanning combo cell
+      if (absorbed.has(pos)) return;
 
       const u = uMap[`${floor}-${pos}`];
 
-      // No unit at this position on this floor (positional gap)
       if (!u) {
-        cells.push(`<div style="background:transparent;min-height:30px;"></div>`);
+        cells.push(`<div style="background:transparent;"></div>`);
         return;
       }
 
-      // Not in scope — muted placeholder
       if (!u.inScope) {
-        cells.push(`<div style="background:var(--scope-bg);padding:5px 3px;min-width:0;overflow:hidden;">
-          <div style="font-size:8px;font-weight:500;color:var(--text-3);opacity:.4;text-align:center;">${u.unit}</div>
-        </div>`);
+        cells.push(
+          `<div style="background:var(--scope-bg);min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 2px;border-top:2px solid rgba(0,0,0,0.07);">` +
+          `<div style="font-size:9px;font-weight:700;color:var(--text-3);opacity:.5;text-align:center;">${String(pos).padStart(2,'0')}</div>` +
+          `<div style="font-size:5.5px;color:var(--text-3);opacity:.35;margin-top:1px;">out</div>` +
+          `</div>`
+        );
         return;
       }
 
-      // ── Combo unit — merged spanning cell ──
       if (u.combo) {
         const k = String(u.type);
         const grp = comboGroups[k] || [u];
         const span = grp.length;
-
-        // Aggregate all rooms across the combo group
         const allRooms = grp.flatMap(cu => cu.components || []);
-
-        // Status: worst across any unit in group that has containers
         const grpStatus = grp
           .filter(cu => cu.ctns && cu.ctns.length)
           .map(cu => unitStatus(cu))
           .reduce((w, s) => (STATUS_RANK[s]||0) < (STATUS_RANK[w]||0) ? s : w, 'PROJ');
-
         const uColor = STATUS_COLORS[grpStatus] || '#A8D4CE';
-        const uDot   = STATUS_DOTS[grpStatus]   || '#1A5C2A';
+        const uDot   = STATUS_DOTS[grpStatus]   || '#D4890A';
 
-        const rooms = allRooms.length
-          ? allRooms.map(comp => {
-              const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
-              return `<div style="display:flex;align-items:center;gap:2px;padding:1.5px 0;border-top:1px solid rgba(0,0,0,0.07);min-width:0;">
-                <span style="font-size:6.5px;font-weight:700;background:${cc};color:#fff;padding:0 3px;line-height:1.8;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>
-                <span style="font-size:6.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>
-              </div>`;
-            }).join('')
-          : `<div style="font-size:7px;color:var(--text-3);font-style:italic;padding:2px 0;">—</div>`;
-
-        // grid-column:span N merges N columns into one wider cell
-        cells.push(`<div style="grid-column:span ${span};background:var(--surface);padding:5px 4px;border-top:3px solid ${uColor};box-shadow:inset 0 0 0 2px ${uDot};min-width:0;overflow:hidden;">
-          <div style="font-size:9px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${k}</div>
-          <div style="font-size:6px;font-weight:700;color:${uDot};background:${uDot}22;border-radius:2px;padding:1px 5px;display:inline-block;margin-bottom:4px;letter-spacing:.05em;">COMBO</div>
-          ${rooms}
-        </div>`);
+        cells.push(
+          `<div data-popup="${makePopup(k, true, grpStatus, allRooms, uColor, '')}" ` +
+          `style="grid-column:span ${span};background:var(--surface);padding:4px;border-top:3px solid ${uColor};` +
+          `box-shadow:inset 0 0 0 2px ${uDot};min-width:0;overflow:hidden;max-height:76px;cursor:default;">` +
+          `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k}</div>` +
+          `<div style="font-size:5px;line-height:1;font-weight:700;color:${uDot};background:${uDot}22;border-radius:2px;padding:1px 3px;margin-bottom:2px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">COMBO</div>` +
+          roomRows(allRooms, uColor) +
+          `</div>`
+        );
         return;
       }
 
-      // ── Regular in-scope unit ──
       const us     = unitStatus(u);
       const uColor = STATUS_COLORS[us] || '#A8D4CE';
+      const uType  = u.type ? String(u.type) : '';
 
-      const rooms = (u.components || []).length
-        ? u.components.map(comp => {
-            const cc = STATUS_COLORS[ctnStatus(comp.ctn)] || uColor;
-            return `<div style="display:flex;align-items:center;gap:2px;padding:1.5px 0;border-top:1px solid rgba(0,0,0,0.07);min-width:0;">
-              <span style="font-size:6.5px;font-weight:700;background:${cc};color:#fff;padding:0 3px;line-height:1.8;border-radius:2px;flex-shrink:0;">${comp.ctn}</span>
-              <span style="font-size:6.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.name}</span>
-            </div>`;
-          }).join('')
-        : `<div style="font-size:7px;color:var(--text-3);font-style:italic;padding:2px 0;">—</div>`;
-
-      cells.push(`<div style="background:var(--surface);padding:5px 4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;">
-        <div style="font-size:9px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${u.unit}</div>
-        ${rooms}
-      </div>`);
+      cells.push(
+        `<div data-popup="${makePopup(String(u.unit), false, us, u.components||[], uColor, uType)}" ` +
+        `style="background:var(--surface);padding:4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;max-height:76px;cursor:default;">` +
+        `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>` +
+        (uType ? `<div style="font-size:5px;font-weight:600;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${uType}</div>` : `<div style="margin-bottom:2px;"></div>`) +
+        roomRows(u.components||[], uColor) +
+        `</div>`
+      );
     });
 
-    html += `<div style="display:flex;align-items:stretch;margin-bottom:6px;">
-      <div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">
-        <span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>
-      </div>
-      <div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};gap:3px;background:var(--border);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">
-        ${cells.join('')}
-      </div>
-    </div>`;
+    html +=
+      `<div style="display:flex;align-items:stretch;margin-bottom:4px;">` +
+      `<div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:${HDR};` +
+      `display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">` +
+      `<span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>` +
+      `</div>` +
+      `<div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};` +
+      `gap:4px;background:var(--border);border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">` +
+      cells.join('') +
+      `</div></div>`;
   });
 
-  html += '</div>';
+  html += '</div></div>';  // close min-width wrapper + overflow-x:auto
   gridEl.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--text-3)">No units found.</div>';
+
+  // ── Hover popup — floats above grid, shows full unit detail on mouse-over ──
+  let pop = document.getElementById('bldg-hover-pop');
+  if (!pop) {
+    pop = document.createElement('div');
+    pop.id = 'bldg-hover-pop';
+    Object.assign(pop.style, {
+      display: 'none', position: 'fixed', zIndex: '9999',
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: '10px', padding: '10px 14px',
+      boxShadow: '0 6px 24px rgba(0,0,0,0.20)',
+      minWidth: '180px', maxWidth: '260px', pointerEvents: 'none',
+    });
+    document.body.appendChild(pop);
+  }
+
+  gridEl.querySelectorAll('[data-popup]').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+      pop.innerHTML = this.dataset.popup;
+      pop.style.display = 'block';
+    });
+    card.addEventListener('mouseleave', () => { pop.style.display = 'none'; });
+    card.addEventListener('mousemove', e => {
+      pop.style.left = Math.min(e.clientX + 16, window.innerWidth  - 280) + 'px';
+      pop.style.top  = Math.min(e.clientY + 12, window.innerHeight - 300) + 'px';
+    });
+  });
 }
 
 // ── UNIT DROPDOWN ────────────────────────────────────────────────
