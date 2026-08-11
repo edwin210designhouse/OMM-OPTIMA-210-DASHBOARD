@@ -187,6 +187,73 @@ tbody tr:hover td { background: var(--bg); }
 .empty-state { text-align: center; padding: 32px; color: var(--text-3); font-size: 12px; }
 .empty-state .big { font-size: 28px; margin-bottom: 8px; }
 
+/* ── Building matrix print-mode (class toggled by printDashboard before measuring) ── */
+/* All fonts scaled +50%; floor label scaled +100%. !important overrides inline styles. */
+
+/* Unit card internals */
+#bldg.bldg-print .bldg-title {
+  font-size: 17px !important;
+  white-space: normal !important;
+}
+#bldg.bldg-print .bldg-pill-text {
+  font-size: 11px !important;
+  line-height: 1.8 !important;
+}
+#bldg.bldg-print .bldg-rooms {
+  margin-top: 3px;
+}
+#bldg.bldg-print .bldg-room-entry {
+  padding: 3px 0 !important;
+  min-width: 0;
+}
+#bldg.bldg-print .bldg-ctn-badge {
+  font-size: 12px !important;
+  padding: 0 4px !important;
+  line-height: 1.8 !important;
+}
+#bldg.bldg-print .bldg-room-name {
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#bldg.bldg-print .bldg-empty-dash {
+  font-size: 10px !important;
+}
+
+/* Column header (unit position numbers) — +50% */
+#bldg.bldg-print .bldg-col-hdr {
+  font-size: 17px !important;
+}
+
+/* Floor row label ("FL 6" etc.) — +100% */
+#bldg.bldg-print .bldg-floor-lbl {
+  font-size: 18px !important;
+}
+
+/* Out-of-scope cells */
+#bldg.bldg-print .bldg-oos-num {
+  font-size: 14px !important;
+}
+#bldg.bldg-print .bldg-oos-tag {
+  font-size: 8px !important;
+}
+
+/* Status legend (colour key below tabs) — +50% */
+#bldg.bldg-print .leg {
+  font-size: 15px !important;
+}
+#bldg.bldg-print .leg-i > span:first-child {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Tab-strip labels in #print-header-bldg — +50% */
+#bldg.bldg-print #print-header-bldg span {
+  font-size: 17px !important;
+  padding: 6px 16px !important;
+}
+
 @media (max-width: 768px) {
   /* Shell */
   .shell { padding: 12px 10px 40px; }
@@ -452,28 +519,9 @@ tbody tr:hover td { background: var(--bg); }
 <!-- ===== BUILDING MATRIX ===== -->
 <div id="bldg" class="panel">
 
-  <!-- Print-only header for page 2 — compact single row to maximise matrix space -->
-  <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:8px;">
-    <!-- Single-row topbar: 210 logo + title | date + Dandamudi + sketch -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid rgba(0,0,0,0.12);">
-      <div style="display:flex;align-items:center;gap:12px;">
-        <img src="210 Black.PNG" alt="210 Design House" style="height:40px;width:auto;">
-        <div>
-          <div style="font-size:15px;font-weight:500;letter-spacing:-.3px;color:#1A1A18;">OMM · Optima McDowell Mountain</div>
-          <div class="print-page-sub" style="font-size:11px;color:#5C5C58;margin-top:2px;">Scottsdale, AZ &nbsp;·&nbsp; Container Dashboard</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
-          <span class="print-date-pill" style="font-size:11px;background:#1A3A2A;color:#fff;padding:3px 8px;border-radius:99px;"></span>
-          <span class="print-week-text" style="font-size:11px;font-weight:500;color:#5C5C58;padding-right:6px;"></span>
-        </div>
-        <img src="Dandamudi's INC Black.png" alt="Dandamudi's INC" style="height:16px;width:auto;">
-        <img src="black sketch.png" alt="Sketch" style="height:48px;width:auto;">
-      </div>
-    </div>
-    <!-- Compact tabs: Building matrix active -->
-    <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:2px;border-radius:6px;width:fit-content;margin-bottom:10px;">
+  <!-- Print-only label for page 2 — tabs only, no topbar, maximises matrix space -->
+  <div id="print-header-bldg" style="display:none;flex-direction:column;margin-bottom:10px;">
+    <div style="display:flex;gap:2px;background:#fff;border:1px solid rgba(0,0,0,0.10);padding:2px;border-radius:6px;width:fit-content;">
       <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Container schedule</span>
       <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;background:#1A3A2A;color:#fff;">Building matrix</span>
       <span style="padding:4px 10px;font-size:11px;font-weight:500;border-radius:5px;color:#5C5C58;">Damage / open items</span>
@@ -573,9 +621,9 @@ tbody tr:hover td { background: var(--bg); }
 
 <script>
 // DATA_START
-const CONTAINERS = [{"num": 1, "status": "DEL", "week": "WEEK 31", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 6, 2026", "shipDate": "Aug 2, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Aug 27, 2026", "etaPhoenix": "Sep 9, 2026", "deliveryDate": "Sep 14, 2026", "installDate": "---"}, {"num": 2, "status": "DEL", "week": "WEEK 31", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 6, 2026", "shipDate": "Aug 2, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Aug 27, 2026", "etaPhoenix": "Sep 9, 2026", "deliveryDate": "Sep 14, 2026", "installDate": "---"}, {"num": 3, "status": "YARD", "week": "WEEK 34", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 19, 2026", "shipDate": "Aug 23, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 17, 2026", "etaPhoenix": "Sep 30, 2026", "deliveryDate": "Oct 5, 2026", "installDate": "---"}, {"num": 4, "status": "TRAIN", "week": "WEEK 35", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 26, 2026", "shipDate": "Aug 30, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 24, 2026", "etaPhoenix": "Oct 7, 2026", "deliveryDate": "Oct 12, 2026", "installDate": "---"}, {"num": 5, "status": "PORT", "week": "WEEK 36", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 2, 2026", "shipDate": "Sep 6, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 1, 2026", "etaPhoenix": "Oct 14, 2026", "deliveryDate": "Oct 19, 2026", "installDate": "---"}, {"num": 6, "status": "PORT", "week": "WEEK 37", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 9, 2026", "shipDate": "Sep 13, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 8, 2026", "etaPhoenix": "Oct 21, 2026", "deliveryDate": "Oct 26, 2026", "installDate": "---"}, {"num": 7, "status": "ENR", "week": "WEEK 38", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 16, 2026", "shipDate": "Sep 20, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 15, 2026", "etaPhoenix": "Oct 28, 2026", "deliveryDate": "Nov 2, 2026", "installDate": "---"}, {"num": 8, "status": "LDD", "week": "WEEK 39", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 23, 2026", "shipDate": "Sep 27, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 22, 2026", "etaPhoenix": "Nov 4, 2026", "deliveryDate": "Nov 9, 2026", "installDate": "---"}, {"num": 9, "status": "LDD", "week": "WEEK 40", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 30, 2026", "shipDate": "Oct 4, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 29, 2026", "etaPhoenix": "Nov 11, 2026", "deliveryDate": "Nov 16, 2026", "installDate": "---"}, {"num": 10, "status": "LDG", "week": "WEEK 41", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 7, 2026", "shipDate": "Oct 11, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 5, 2026", "etaPhoenix": "Nov 18, 2026", "deliveryDate": "Nov 23, 2026", "installDate": "---"}, {"num": 11, "status": "LDG", "week": "WEEK 42", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 14, 2026", "shipDate": "Oct 18, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 12, 2026", "etaPhoenix": "Nov 25, 2026", "deliveryDate": "Nov 30, 2026", "installDate": "---"}, {"num": 12, "status": "PROJ", "week": "WEEK 43", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 21, 2026", "shipDate": "Oct 25, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 19, 2026", "etaPhoenix": "Dec 2, 2026", "deliveryDate": "Dec 7, 2026", "installDate": "---"}, {"num": 13, "status": "PROJ", "week": "WEEK 44", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 28, 2026", "shipDate": "Nov 1, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 26, 2026", "etaPhoenix": "Dec 9, 2026", "deliveryDate": "Dec 14, 2026", "installDate": "---"}, {"num": 14, "status": "PROJ", "week": "WEEK 45", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 4, 2026", "shipDate": "Nov 8, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 3, 2026", "etaPhoenix": "Dec 16, 2026", "deliveryDate": "Dec 21, 2026", "installDate": "---"}, {"num": 15, "status": "PROJ", "week": "WEEK 46", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 11, 2026", "shipDate": "Nov 15, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 10, 2026", "etaPhoenix": "Dec 23, 2026", "deliveryDate": "Dec 28, 2026", "installDate": "---"}, {"num": 16, "status": "PROJ", "week": "WEEK 47", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 18, 2026", "shipDate": "Nov 22, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 17, 2026", "etaPhoenix": "Dec 30, 2026", "deliveryDate": "Jan 4, 2027", "installDate": "---"}, {"num": 17, "status": "PROJ", "week": "WEEK 48", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 25, 2026", "shipDate": "Nov 29, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 24, 2026", "etaPhoenix": "Jan 6, 2027", "deliveryDate": "Jan 11, 2027", "installDate": "---"}, {"num": 18, "status": "PROJ", "week": "WEEK 49", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 2, 2026", "shipDate": "Dec 6, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 31, 2026", "etaPhoenix": "Jan 13, 2027", "deliveryDate": "Jan 18, 2027", "installDate": "---"}, {"num": 19, "status": "PROJ", "week": "WEEK 50", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 9, 2026", "shipDate": "Dec 13, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 7, 2027", "etaPhoenix": "Jan 20, 2027", "deliveryDate": "Jan 25, 2027", "installDate": "---"}, {"num": 20, "status": "PROJ", "week": "WEEK 51", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 16, 2026", "shipDate": "Dec 20, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 14, 2027", "etaPhoenix": "Jan 27, 2027", "deliveryDate": "Feb 1, 2027", "installDate": "---"}, {"num": 21, "status": "PROJ", "week": "WEEK 52", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Dec 29, 2027", "shipDate": "Jan 2, 2028", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Jan 21, 2027", "etaPhoenix": "Feb 3, 2027", "deliveryDate": "Feb 8, 2027", "installDate": "---"}];
+const CONTAINERS = [{"num": 1, "status": "DEL", "week": "WEEK 31", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 6, 2026", "shipDate": "Aug 2, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Aug 27, 2026", "etaPhoenix": "Sep 9, 2026", "deliveryDate": "Sep 14, 2026", "installDate": "---"}, {"num": 2, "status": "DEL", "week": "WEEK 31", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 6, 2026", "shipDate": "Aug 2, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Aug 27, 2026", "etaPhoenix": "Sep 9, 2026", "deliveryDate": "Sep 14, 2026", "installDate": "---"}, {"num": 3, "status": "YARD", "week": "WEEK 34", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 19, 2026", "shipDate": "Aug 23, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 17, 2026", "etaPhoenix": "Sep 30, 2026", "deliveryDate": "Oct 5, 2026", "installDate": "---"}, {"num": 4, "status": "TRAIN", "week": "WEEK 35", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Aug 26, 2026", "shipDate": "Aug 30, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Sep 24, 2026", "etaPhoenix": "Oct 7, 2026", "deliveryDate": "Oct 12, 2026", "installDate": "---"}, {"num": 5, "status": "PORT", "week": "WEEK 36", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 2, 2026", "shipDate": "Sep 6, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 1, 2026", "etaPhoenix": "Oct 14, 2026", "deliveryDate": "Oct 19, 2026", "installDate": "---"}, {"num": 6, "status": "PORT", "week": "WEEK 37", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 9, 2026", "shipDate": "Sep 13, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 8, 2026", "etaPhoenix": "Oct 21, 2026", "deliveryDate": "Oct 26, 2026", "installDate": "---"}, {"num": 7, "status": "ENR", "week": "WEEK 38", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 16, 2026", "shipDate": "Sep 20, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 15, 2026", "etaPhoenix": "Oct 28, 2026", "deliveryDate": "Nov 2, 2026", "installDate": "---"}, {"num": 8, "status": "LDD", "week": "WEEK 39", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 23, 2026", "shipDate": "Sep 27, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 22, 2026", "etaPhoenix": "Nov 4, 2026", "deliveryDate": "Nov 9, 2026", "installDate": "---"}, {"num": 9, "status": "LDD", "week": "WEEK 40", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Sep 30, 2026", "shipDate": "Oct 4, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Oct 29, 2026", "etaPhoenix": "Nov 11, 2026", "deliveryDate": "Nov 16, 2026", "installDate": "---"}, {"num": 10, "status": "LDG", "week": "WEEK 41", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 7, 2026", "shipDate": "Oct 11, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 5, 2026", "etaPhoenix": "Nov 18, 2026", "deliveryDate": "Nov 23, 2026", "installDate": "---"}, {"num": 11, "status": "LDG", "week": "WEEK 42", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 14, 2026", "shipDate": "Oct 18, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 12, 2026", "etaPhoenix": "Nov 25, 2026", "deliveryDate": "Nov 30, 2026", "installDate": "---"}, {"num": 12, "status": "PROJ", "week": "WEEK 43", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 21, 2026", "shipDate": "Oct 25, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 19, 2026", "etaPhoenix": "Dec 2, 2026", "deliveryDate": "Dec 7, 2026", "installDate": "---"}, {"num": 13, "status": "PROJ", "week": "WEEK 44", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Oct 28, 2026", "shipDate": "Nov 1, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Nov 26, 2026", "etaPhoenix": "Dec 9, 2026", "deliveryDate": "Dec 14, 2026", "installDate": "---"}, {"num": 14, "status": "PROJ", "week": "WEEK 45", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 4, 2026", "shipDate": "Nov 8, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 3, 2026", "etaPhoenix": "Dec 16, 2026", "deliveryDate": "Dec 21, 2026", "installDate": "---"}, {"num": 15, "status": "PROJ", "week": "WEEK 46", "floors": "---", "contCode": "XXXXXXXXX", "contSeal": "XXXXXXXXX", "loadDate": "Nov 11, 2026", "shipDate": "Nov 15, 2026", "vessel1": "XXXXXX XXXX", "vessel2": "XXXXXX XXXX", "etaLAX": "Dec 10, 2026", "etaPhoenix": "Dec 23, 2026", "deliveryDate": "Dec 28, 2026", "installDate": "---"}];
 const UNITS = [{"floor": 2, "unit": 2001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2005, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2006, "inScope": true, "combo": false, "type": "3B-02", "status": "ORDERED", "components": [{"room": "Bev Ctr", "container": 1}, {"room": "Laundry", "container": 1}]}, {"floor": 2, "unit": 2007, "inScope": true, "combo": false, "type": "1B-02", "status": "ORDERED", "components": [{"room": "Foyer", "container": 1}, {"room": "Utility", "container": 1}, {"room": "Kitchen", "container": 1}, {"room": "Prim Bath", "container": 1}]}, {"floor": 2, "unit": 2008, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2009, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2010, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2011, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2015, "inScope": true, "combo": false, "type": "3B-04", "status": "ORDERED", "components": [{"room": "Foyer", "container": 1}, {"room": "Hall", "container": 1}, {"room": "Utility", "container": 1}, {"room": "Kitchen", "container": 1}, {"room": "Prim Bath", "container": 1}, {"room": "Bath 2", "container": 1}]}, {"floor": 2, "unit": 2016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2017, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2019, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2020, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2021, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2023, "inScope": true, "combo": false, "type": "2B-07", "status": "ORDERED", "components": [{"room": "Foyer", "container": 1}, {"room": "Hall", "container": 1}, {"room": "Utility", "container": 1}, {"room": "Kitchen", "container": 1}, {"room": "Prim Bath", "container": 1}, {"room": "Bath 2", "container": 1}, {"room": "Bed 2", "container": 1}]}, {"floor": 2, "unit": 2024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2025, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 2, "unit": 2028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3005, "inScope": true, "combo": true, "type": "3005.06.07", "status": "ORDERED", "components": [{"room": "Utility", "container": 1}, {"room": "Kitchen", "container": 1}, {"room": "Dining", "container": 1}, {"room": "Prim Bath", "container": 1}, {"room": "Bath 2", "container": 1}, {"room": "Bath 3", "container": 1}]}, {"floor": 3, "unit": 3006, "inScope": true, "combo": true, "type": "3005.06.07", "status": "ORDERED", "components": []}, {"floor": 3, "unit": 3007, "inScope": true, "combo": true, "type": "3005.06.07", "status": "ORDERED", "components": []}, {"floor": 3, "unit": 3008, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3009, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3010, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3011, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3017, "inScope": true, "combo": false, "type": "1B-05", "status": "ORDERED", "components": [{"room": "Foyer", "container": 2}, {"room": "Utility", "container": 2}, {"room": "Kitchen", "container": 2}, {"room": "Prim Bath", "container": 2}]}, {"floor": 3, "unit": 3018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3019, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3020, "inScope": true, "combo": false, "type": "1B-06", "status": "ORDERED", "components": [{"room": "Foyer", "container": 2}, {"room": "Utility", "container": 2}, {"room": "Kitchen", "container": 2}, {"room": "Prim Bath", "container": 2}]}, {"floor": 3, "unit": 3021, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3025, "inScope": true, "combo": false, "type": "2B-09", "status": "ORDERED", "components": [{"room": "Bev Ctr", "container": 2}, {"room": "Kitchen", "container": 2}]}, {"floor": 3, "unit": 3026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 3, "unit": 3027, "inScope": true, "combo": false, "type": "2B-11", "status": "ORDERED", "components": [{"room": "Foyer", "container": 2}, {"room": "Utility", "container": 2}, {"room": "Kitchen", "container": 2}, {"room": "Prim Bath", "container": 2}, {"room": "Bath 2", "container": 2}]}, {"floor": 3, "unit": 3028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4005, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4006, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4007, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4008, "inScope": true, "combo": false, "type": "2B-02", "status": "ORDERED", "components": [{"room": "Utility", "container": 3}, {"room": "Kitchen", "container": 3}, {"room": "Prim Bath", "container": 3}, {"room": "Bath 2", "container": 3}, {"room": "Bed 2", "container": 3}]}, {"floor": 4, "unit": 4009, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4010, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4011, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4017, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4019, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4020, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4021, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4025, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 4, "unit": 4028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5005, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5006, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5007, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5008, "inScope": true, "combo": true, "type": "5008.09", "status": "ORDERED", "components": [{"room": "Foyer", "container": 3}, {"room": "Utility", "container": 3}, {"room": "Closet", "container": 3}, {"room": "Kitchen", "container": 3}, {"room": "Prim Bath", "container": 3}, {"room": "Bath 2", "container": 3}, {"room": "Bath 3", "container": 3}, {"room": "Bed 3", "container": 3}]}, {"floor": 5, "unit": 5009, "inScope": true, "combo": true, "type": "5008.09", "status": "ORDERED", "components": []}, {"floor": 5, "unit": 5010, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5011, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5017, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5019, "inScope": true, "combo": false, "type": "3B-06", "status": "ORDERED", "components": [{"room": "Foyer", "container": 3}, {"room": "Utility", "container": 3}, {"room": "Bev Ctr", "container": 3}, {"room": "Kitchen", "container": 3}, {"room": "Great Rm", "container": 3}, {"room": "Prim Bath", "container": 3}, {"room": "Bath 2", "container": 3}, {"room": "Bath 3", "container": 3}, {"room": "Bed 2", "container": 3}, {"room": "Bed 3", "container": 3}]}, {"floor": 5, "unit": 5020, "inScope": true, "combo": false, "type": "1B-06", "status": "ORDERED", "components": [{"room": "Foyer", "container": 4}, {"room": "Utility", "container": 4}, {"room": "Kitchen", "container": 4}, {"room": "Prim Bath", "container": 4}]}, {"floor": 5, "unit": 5021, "inScope": true, "combo": false, "type": "2B-06", "status": "ORDERED", "components": [{"room": "Foyer", "container": 4}, {"room": "Hall", "container": 4}, {"room": "Utility", "container": 4}, {"room": "Kitchen", "container": 4}, {"room": "Prim Bath", "container": 4}, {"room": "Bath 2", "container": 4}]}, {"floor": 5, "unit": 5022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5025, "inScope": true, "combo": false, "type": "2B-09", "status": "ORDERED", "components": [{"room": "Foyer", "container": 4}, {"room": "Utility", "container": 4}, {"room": "Kitchen", "container": 4}, {"room": "Prim Bath", "container": 4}, {"room": "Bath 2", "container": 4}, {"room": "Bed 2", "container": 4}]}, {"floor": 5, "unit": 5026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 5, "unit": 5028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6002, "inScope": true, "combo": true, "type": "6002.03", "status": "ORDERED", "components": [{"room": "Foyer", "container": 4}, {"room": "Utility", "container": 4}, {"room": "Kitchen", "container": 4}, {"room": "Prim Bath", "container": 4}, {"room": "Bath 2", "container": 4}, {"room": "Bath 3", "container": 4}, {"room": "Bath 4", "container": 4}, {"room": "Bed 2", "container": 4}]}, {"floor": 6, "unit": 6003, "inScope": true, "combo": true, "type": "6002.03", "status": "ORDERED", "components": []}, {"floor": 6, "unit": 6004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6005, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6006, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6007, "inScope": true, "combo": false, "type": "1B-02", "status": "ORDERED", "components": [{"room": "Foyer", "container": 0}, {"room": "Utility", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Prim Bath", "container": 0}]}, {"floor": 6, "unit": 6008, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6009, "inScope": true, "combo": false, "type": "1B-03", "status": "ORDERED", "components": [{"room": "Foyer", "container": 0}, {"room": "Utility", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Prim Bath", "container": 0}, {"room": "Prim Bed", "container": 0}]}, {"floor": 6, "unit": 6010, "inScope": true, "combo": false, "type": "2B-03", "status": "ORDERED", "components": [{"room": "Foyer", "container": 0}, {"room": "Utility", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Prim Bath", "container": 0}, {"room": "Bath 2", "container": 0}]}, {"floor": 6, "unit": 6011, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6017, "inScope": true, "combo": true, "type": "6017.18", "status": "ORDERED", "components": [{"room": "Utility", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Prim Bath", "container": 0}, {"room": "Bath 2", "container": 0}, {"room": "Bath 3", "container": 0}, {"room": "Bath 4", "container": 0}, {"room": "Bed 2", "container": 0}]}, {"floor": 6, "unit": 6018, "inScope": true, "combo": true, "type": "6017.18", "status": "ORDERED", "components": []}, {"floor": 6, "unit": 6019, "inScope": true, "combo": true, "type": "6019.20", "status": "ORDERED", "components": [{"room": "Foyer", "container": 0}, {"room": "Utility", "container": 0}, {"room": "Bev Ctr", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Great Rm", "container": 0}, {"room": "Prim Bath", "container": 0}, {"room": "Bath 2", "container": 0}, {"room": "Bed 2", "container": 0}]}, {"floor": 6, "unit": 6020, "inScope": true, "combo": true, "type": "6019.20", "status": "ORDERED", "components": []}, {"floor": 6, "unit": 6021, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6025, "inScope": true, "combo": false, "type": "2B-09", "status": "ORDERED", "components": [{"room": "Foyer", "container": 0}, {"room": "Utility", "container": 0}, {"room": "Kitchen", "container": 0}, {"room": "Prim Bath", "container": 0}, {"room": "Bath 2", "container": 0}, {"room": "Bed 2", "container": 0}]}, {"floor": 6, "unit": 6026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 6, "unit": 6028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7001, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7005, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7006, "inScope": true, "combo": true, "type": "7006.07", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7007, "inScope": true, "combo": true, "type": "7006.07", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7008, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7009, "inScope": true, "combo": true, "type": "7009.10", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7010, "inScope": true, "combo": true, "type": "7009.10", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7011, "inScope": true, "combo": false, "type": "0", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7012, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7017, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7019, "inScope": true, "combo": false, "type": "0", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7020, "inScope": true, "combo": true, "type": "7020.21", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7021, "inScope": true, "combo": true, "type": "7020.21", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7025, "inScope": true, "combo": false, "type": "0", "status": "PENDING", "components": []}, {"floor": 7, "unit": 7026, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 7, "unit": 7028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8001, "inScope": true, "combo": false, "type": "0", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8002, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8003, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8004, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8005, "inScope": true, "combo": true, "type": "8005.06", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8006, "inScope": true, "combo": true, "type": "8005.06", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8007, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8008, "inScope": true, "combo": true, "type": "8008.09", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8009, "inScope": true, "combo": true, "type": "8008.09", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8010, "inScope": true, "combo": true, "type": "8010.11", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8011, "inScope": true, "combo": true, "type": "8010.11", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8012, "inScope": true, "combo": false, "type": "0", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8013, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8014, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8015, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8016, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8017, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8018, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8019, "inScope": true, "combo": true, "type": "8019.20", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8020, "inScope": true, "combo": true, "type": "8019.20", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8021, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8022, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8023, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8024, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8025, "inScope": true, "combo": true, "type": "8025.26", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8026, "inScope": true, "combo": true, "type": "8025.26", "status": "PENDING", "components": []}, {"floor": 8, "unit": 8027, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}, {"floor": 8, "unit": 8028, "inScope": false, "combo": false, "type": "0", "status": "NOT IN SCOPE", "components": []}];
-const UPDATED = "Aug 11, 2026 at 02:23 PM";
+const UPDATED = "Aug 11, 2026 at 03:11 PM";
 // DATA_END
 
 // ── STATUS CONFIG ────────────────────────────────────────────────
@@ -968,14 +1016,15 @@ function renderBuilding() {
 
   // ── Room rows — CSS truncation keeps cards at uniform height ──
   function roomRows(comps, uColor) {
-    if (!comps.length) return `<div style="font-size:6.5px;color:var(--text-3);font-style:italic;padding:1px 0;">—</div>`;
-    return comps.map(comp => {
+    if (!comps.length) return `<div class="bldg-rooms"><div class="bldg-empty-dash" style="font-size:6.5px;color:var(--text-3);font-style:italic;padding:1px 0;">—</div></div>`;
+    const rows = comps.map(comp => {
       const cc = STATUS_COLORS[ctnStatus(comp.container)] || uColor;
-      return `<div style="display:flex;align-items:center;gap:2px;padding:1px 0;border-top:1px solid rgba(0,0,0,0.06);min-width:0;overflow:hidden;">` +
-        `<span style="font-size:5.5px;font-weight:700;background:${cc};color:#fff;padding:0 2px;line-height:2;border-radius:2px;flex-shrink:0;">${comp.container}</span>` +
-        `<span style="font-size:5.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.room}</span>` +
+      return `<div class="bldg-room-entry" style="display:flex;align-items:center;gap:2px;padding:1px 0;border-top:1px solid rgba(0,0,0,0.06);min-width:0;overflow:hidden;">` +
+        `<span class="bldg-ctn-badge" style="font-size:5.5px;font-weight:700;background:${cc};color:#fff;padding:0 2px;line-height:2;border-radius:2px;flex-shrink:0;">${comp.container}</span>` +
+        `<span class="bldg-room-name" style="font-size:5.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${comp.room}</span>` +
         `</div>`;
     }).join('');
+    return `<div class="bldg-rooms">${rows}</div>`;
   }
 
   // ── Popup HTML — single-quoted styles so it's safe inside data="" attr ──
@@ -1010,7 +1059,7 @@ function renderBuilding() {
   // gap:4px on header grid MUST match data grid gap so column widths are identical
   const numHdr = allPos.map(pos =>
     `<div style="padding:4px 2px;text-align:center;min-width:0;">` +
-    `<div style="font-size:11px;font-weight:700;color:#fff;">${String(pos).padStart(2,'0')}</div>` +
+    `<div class="bldg-col-hdr" style="font-size:11px;font-weight:700;color:#fff;">${String(pos).padStart(2,'0')}</div>` +
     `</div>`
   ).join('');
 
@@ -1052,9 +1101,9 @@ function renderBuilding() {
 
       if (!u.inScope) {
         cells.push(
-          `<div style="background:var(--scope-bg);min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:76px;border-top:2px solid rgba(0,0,0,0.07);">` +
-          `<div style="font-size:9px;font-weight:700;color:var(--text-3);opacity:.5;text-align:center;">${String(pos).padStart(2,'0')}</div>` +
-          `<div style="font-size:5.5px;color:var(--text-3);opacity:.35;margin-top:1px;">out</div>` +
+          `<div class="bldg-cell" style="background:var(--scope-bg);min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:76px;border-top:2px solid rgba(0,0,0,0.07);">` +
+          `<div class="bldg-oos-num" style="font-size:9px;font-weight:700;color:var(--text-3);opacity:.5;text-align:center;">${String(pos).padStart(2,'0')}</div>` +
+          `<div class="bldg-oos-tag" style="font-size:5.5px;color:var(--text-3);opacity:.35;margin-top:1px;">out</div>` +
           `</div>`
         );
         return;
@@ -1073,12 +1122,12 @@ function renderBuilding() {
         const COMBO_CLR = '#D4890A';  // always orange — independent of unit status
 
         cells.push(
-          `<div data-popup="${makePopup(k, true, grpStatus, allRooms, uColor, '')}" ` +
+          `<div class="bldg-cell" data-popup="${makePopup(k, true, grpStatus, allRooms, uColor, '')}" ` +
           `style="grid-column:span ${span};background:var(--surface);padding:4px;border-top:3px solid ${uColor};` +
           `box-shadow:inset 0 0 0 2px ${COMBO_CLR};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
-          `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k}</div>` +
+          `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k}</div>` +
           `<div style="line-height:0;margin-bottom:3px;">` +
-          `<span style="font-size:5px;line-height:1.6;font-weight:700;color:${COMBO_CLR};background:${COMBO_CLR}22;border:1px solid ${COMBO_CLR}66;border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">COMBO</span>` +
+          `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:${COMBO_CLR};background:${COMBO_CLR}22;border:1px solid ${COMBO_CLR}66;border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">COMBO</span>` +
           `</div>` +
           roomRows(allRooms, uColor) +
           `</div>`
@@ -1091,11 +1140,11 @@ function renderBuilding() {
       const uType  = u.type ? String(u.type) : '';
 
       cells.push(
-        `<div data-popup="${makePopup(String(u.unit), false, us, u.components||[], uColor, uType)}" ` +
+        `<div class="bldg-cell" data-popup="${makePopup(String(u.unit), false, us, u.components||[], uColor, uType)}" ` +
         `style="background:var(--surface);padding:4px;border-top:3px solid ${uColor};min-width:0;overflow:hidden;height:76px;cursor:default;">` +
-        `<div style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>` +
+        `<div class="bldg-title" style="font-size:8.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.unit}</div>` +
         `<div style="line-height:0;margin-bottom:3px;">` +
-        (uType ? `<span style="font-size:5px;line-height:1.6;font-weight:700;color:var(--text-3);background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">${uType}</span>` : '') +
+        (uType ? `<span class="bldg-pill-text" style="font-size:5px;line-height:1.6;font-weight:700;color:var(--text-3);background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:99px;padding:0 4px;display:inline-block;letter-spacing:.04em;">${uType}</span>` : '') +
         `</div>` +
         roomRows(u.components||[], uColor) +
         `</div>`
@@ -1106,7 +1155,7 @@ function renderBuilding() {
       `<div style="display:flex;align-items:stretch;margin-bottom:4px;">` +
       `<div style="position:sticky;left:0;z-index:3;flex-shrink:0;width:${LBL_W}px;background:${HDR};` +
       `display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg) 0 0 var(--radius-lg);">` +
-      `<span style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>` +
+      `<span class="bldg-floor-lbl" style="font-size:9px;font-weight:700;color:#fff;writing-mode:vertical-lr;transform:rotate(180deg);">FL ${floor}</span>` +
       `</div>` +
       `<div style="flex:1;min-width:0;display:grid;grid-template-columns:${gridCols};` +
       `gap:4px;background:var(--border);border-radius:0 var(--radius-lg) var(--radius-lg) 0;overflow:hidden;">` +
@@ -1258,17 +1307,40 @@ function printDashboard() {
   document.querySelectorAll('.print-week-text').forEach(el  => el.textContent = weekText);
   document.querySelectorAll('.print-page-sub').forEach(el   => el.textContent = subText);
 
-  // ── Equalize building matrix row heights for print ─────────────
-  // All floors must be the same height = the tallest floor (most rooms).
-  // We measure off-screen so the user never sees a flash.
+  // ── Equalize building matrix cell heights for print ─────────────
+  // bldg-print class activates larger fonts BEFORE we measure,
+  // so the captured heights reflect exactly what will print.
   const bldg          = document.getElementById('bldg');
   const bldgOrigStyle = bldg.getAttribute('style') || '';
+  bldg.classList.add('bldg-print');
+
+  // Widen unit card columns for print — wider cards fill landscape width better.
+  // 25% wider than before (70 → 88 px minimum).
+  const PRINT_COL_MIN = 88;  // px
+  const bldgGrids = Array.from(bldg.querySelectorAll('[style*="grid-template-columns"]'));
+  bldgGrids.forEach(el => {
+    el.dataset.origCols = el.style.gridTemplateColumns;
+    const m = el.style.gridTemplateColumns.match(/repeat\((\d+)/);
+    if (m) el.style.gridTemplateColumns = `repeat(${m[1]}, minmax(${PRINT_COL_MIN}px, 1fr))`;
+  });
+  // Capture N for width-fit calculation (before off-screen move touches inline styles)
+  const firstOrigCols = bldgGrids.length ? (bldgGrids[0].dataset.origCols || '') : '';
+  const colCountM     = firstOrigCols.match(/repeat\((\d+)/);
+  const N_COLS        = colCountM ? parseInt(colCountM[1]) : 27;
+
+  // #print-header-bldg has display:none inline; @media print overrides it to flex !important,
+  // but JS measurement happens outside @media print so the header height was never counted —
+  // causing the content to bleed ~35px past the page. Show it now so scrollHeight is accurate.
+  const phBldg     = document.getElementById('print-header-bldg');
+  const phBldgOrig = phBldg ? phBldg.style.display : '';
+  if (phBldg) phBldg.style.display = 'flex';
 
   // Show bldg off-screen for measurement (hidden from user)
   bldg.style.cssText = 'display:block;visibility:hidden;position:fixed;top:-99999px;left:0;width:' + window.innerWidth + 'px;';
+  bldg.classList.add('bldg-print'); // classList survives cssText reassignment
 
-  // All unit cells have height:76px inline — let them expand to natural height
-  const bldgCells = Array.from(bldg.querySelectorAll('[style*="height:76px"]'));
+  // Expand all unit cells to natural height so content is fully visible
+  const bldgCells = Array.from(bldg.querySelectorAll('.bldg-cell'));
   bldgCells.forEach(el => {
     el.dataset.ph = el.style.height;
     el.dataset.po = el.style.overflow;
@@ -1277,30 +1349,39 @@ function printDashboard() {
   });
 
   requestAnimationFrame(() => {
-    // Find the tallest cell (the floor with the most room items)
+    // Find tallest cell (floor with most room items at print font size)
     let maxH = 0;
     bldgCells.forEach(el => { if (el.offsetHeight > maxH) maxH = el.offsetHeight; });
-    // Apply that height uniformly to every cell — all floor rows become equal
+    // Uniform height across all floor rows
     bldgCells.forEach(el => { el.style.height = maxH + 'px'; });
 
-    // Auto-zoom: measure total bldg height vs landscape page usable height
-    void bldg.offsetHeight;  // force reflow
-    const bldgH    = bldg.scrollHeight;
-    const pageH    = (11 - 0.5) * 96;          // 10.5in × 96dpi ≈ 1008px usable
-    const autoZoom = bldgH > pageH
-      ? +(pageH / bldgH).toFixed(2)
-      : 1.0;
+    // Auto-zoom: fit bldg (including print header) into landscape page on both axes.
+    // 3% safety margin prevents single-px rounding from spilling to a second page.
+    void bldg.offsetHeight;
+    const bldgH    = bldg.scrollHeight;  // now includes #print-header-bldg height
+    if (phBldg) phBldg.style.display = phBldgOrig;  // restore — @media print shows it at print time
+    const pageH    = (11 - 0.50) * 96 * 0.97;  // 978px safe usable height
+    const pageW    = (17 - 0.70) * 96;          // 1565px usable width
+    const naturalW = 28 + N_COLS * PRINT_COL_MIN + (N_COLS - 1) * 4; // LBL(28) + cols + gaps(4)
+    const fitH     = pageH / bldgH;
+    const fitW     = pageW / naturalW;
+    const autoZoom = +(Math.min(fitH, fitW, 1.0)).toFixed(2);
 
-    // Restore bldg to its normal hidden state; inline zoom overrides @media print
+    // Restore bldg display state; zoom inline overrides @media print zoom
     bldg.setAttribute('style', bldgOrigStyle);
+    bldg.classList.add('bldg-print');   // stays active through print
     bldg.style.zoom = String(autoZoom);
 
-    // After printing, restore all cells to original screen heights
+    // After printing — restore screen state
     window.addEventListener('afterprint', () => {
       bldgCells.forEach(el => {
         el.style.height   = el.dataset.ph || '76px';
         el.style.overflow = el.dataset.po || 'hidden';
       });
+      bldgGrids.forEach(el => {
+        if (el.dataset.origCols) el.style.gridTemplateColumns = el.dataset.origCols;
+      });
+      bldg.classList.remove('bldg-print');
       bldg.style.zoom = '';
     }, { once: true });
 
