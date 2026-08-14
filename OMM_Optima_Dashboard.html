@@ -980,11 +980,10 @@ function renderCal() {
   for (let d = 1; d <= fillCount; d++) {
     const dow2 = new Date(nextY, nextM, d).getDay();
     const isWE2 = dow2 === 0 || dow2 === 6;
-    const ci = nextDeliveryColorMap[d], ri = nextRangeDays[d];
+    const ci = nextDeliveryColorMap[d];
     let bg2 = '', fc2 = 'color:var(--text-3);', dot2 = '';
     if (isWE2) { bg2 = 'background:#F4F3EF;'; fc2 = 'color:#C8C5BE;'; }
     else if (ci) { bg2 = `background:${ci.sc}22;`; fc2 = `color:${ci.dc};font-weight:600;`; dot2 = `<div style="display:flex;justify-content:center;margin-top:2px;"><div style="width:6px;height:6px;border-radius:50%;background:${ci.sc};"></div></div>`; }
-    else if (ri) { bg2 = `background:${ri.sc}14;`; fc2 = `color:${ri.dc};`; }
     html += `<div style="height:26px;border-radius:4px;padding:2px 1px 1px;${bg2}"><div style="text-align:center;font-size:10px;${fc2}">${d}</div>${dot2}</div>`;
   }
 
@@ -999,11 +998,10 @@ function renderCal() {
   for (let d = nextRowStart; d <= nextMonthTotal; d++) {
     const dow3 = new Date(nextY, nextM, d).getDay();
     const isWE3 = dow3 === 0 || dow3 === 6;
-    const ci = nextDeliveryColorMap[d], ri = nextRangeDays[d];
+    const ci = nextDeliveryColorMap[d];
     let bg3 = '', fc3 = 'color:var(--text-3);', dot3 = '';
     if (isWE3) { bg3 = 'background:#F4F3EF;'; fc3 = 'color:#C8C5BE;'; }
     else if (ci) { bg3 = `background:${ci.sc}22;`; fc3 = `color:${ci.dc};font-weight:600;`; dot3 = `<div style="display:flex;justify-content:center;margin-top:2px;"><div style="width:6px;height:6px;border-radius:50%;background:${ci.sc};"></div></div>`; }
-    else if (ri) { bg3 = `background:${ri.sc}14;`; fc3 = `color:${ri.dc};`; }
     html += `<div style="height:26px;border-radius:4px;padding:2px 1px 1px;${bg3}"><div style="text-align:center;font-size:10px;${fc3}">${d}</div>${dot3}</div>`;
   }
   // Fill last row of next month
